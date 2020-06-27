@@ -1,0 +1,59 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 29
+    buildToolsVersion "29.0.2"
+
+    defaultConfig {
+        applicationId "com.example.capture"
+        minSdkVersion 15
+        targetSdkVersion 29
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    sourceSets {
+        main {
+            java {
+                srcDirs 'src/main/java', 'src/main/java/com/example/capture/fragments', 'src/main/java/com/example/models'
+            }
+        }
+    }
+
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'androidx.core:core:1.3.0'  // notification?
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-beta7'
+    implementation 'gun0912.ted:tedpermission:2.2.3'
+    implementation 'com.google.android.material:material:1.1.0'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.navigation:navigation-fragment:2.2.2'
+    implementation 'androidx.navigation:navigation-ui:2.2.2'
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    testImplementation 'junit:junit:4.13'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    implementation 'com.github.bumptech.glide:glide:4.11.0'  // View에 data 삽입
+    implementation 'org.greenrobot:eventbus:3.0.0'  //  eventbus
+    implementation 'com.squareup:otto:1.3.8'  //subscribe
+    implementation 'com.squareup.picasso:picasso:2.71828'   // 앨범아트 - imageView
+
+    // Lifecycle components
+    def archLifecycleVersion = '1.1.1'
+    implementation "android.arch.lifecycle:extensions:$archLifecycleVersion"
+    annotationProcessor "android.arch.lifecycle:compiler:$archLifecycleVersion"
+
+    //noinspection GradleCompatible
+//    implementation 'com.android.support:design:28.0.0'
+}

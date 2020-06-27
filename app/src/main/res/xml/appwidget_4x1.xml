@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:initialLayout="@layout/appwidget"
+    android:minHeight="60dp"
+    android:minWidth="294dp"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="360000000"
+    android:widgetCategory="home_screen"
+    android:configure="com.example.capture.CaptureWidgetConfigure"/>
+
+    <!-- android:initialLayout 위에서 만들어둔 appwidget.xml 입니다.-->
+    <!-- android:minHeight 최소 높이 -->
+    <!-- android:minWidth 최대 높이 -->

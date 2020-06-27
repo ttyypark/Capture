@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">Capture</string>
+
+    <!-- Ted Permission -->
+    <string name="permission_1">[설정] > [권한] 에서 권한을 허용할 수 있습니다.</string>
+    <string name="permission_2">사진 및 파일을 저장하기 위하여 접근 권한이 필요합니다.</string>
+    <string name="title_activity_music_player">activity_music_player</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">비디오 플레이어</string>
+    <string name="second_fragment_label">비디오 목록</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_camera_photo">CameraPhoto</string>
+    <string name="title_activity_video_player">VideoPlayerActivity</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="configure">Configure</string>
+    <string name="add_widget">Add widget</string>
+
+</resources>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/darker_gray"
+    android:orientation="horizontal"
+    android:padding="5dp">
+
+    <ImageView
+        android:id="@+id/album_image"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:padding="5dp"
+        android:src="@mipmap/ic_launcher" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/title_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="title"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/artist_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="content"
+            android:textSize="14sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btn_rewind"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginRight="20dp"
+                android:layout_weight="1"
+                android:background="@null"
+                android:src="@drawable/skip_previous" />
+
+            <ImageButton
+                android:id="@+id/btn_play_pause"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginRight="20dp"
+                android:layout_weight="1"
+                android:background="@null"
+                android:src="@drawable/play_pause" />
+
+            <ImageButton
+                android:id="@+id/btn_forward"
+                android:layout_width="40dp"
+                android:layout_height="30dp"
+                android:layout_marginRight="20dp"
+                android:layout_weight="1"
+                android:background="@null"
+                android:src="@drawable/skip_next" />
+
+            <Button
+                android:id="@+id/btn_close"
+                android:layout_width="2dp"
+                android:layout_height="30dp"
+                android:layout_weight="3"
+                android:text="알림중지"
+                android:background="@null" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

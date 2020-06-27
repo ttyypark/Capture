@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!--    android:onClick="mOnClick"-->
+
+    <Button
+        android:id="@+id/camera_photo"
+        android:layout_width="150dp"
+        android:layout_height="50dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="128dp"
+        android:layout_marginLeft="128dp"
+        android:layout_marginTop="39dp"
+        android:layout_marginEnd="128dp"
+        android:layout_marginRight="128dp"
+        android:background="@android:color/holo_green_dark"
+        android:text="사진찍기"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/music"
+        android:layout_width="150dp"
+        android:layout_height="50dp"
+        android:layout_below="@+id/camera_photo"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="128dp"
+        android:layout_marginLeft="128dp"
+        android:layout_marginTop="22dp"
+        android:layout_marginEnd="128dp"
+        android:layout_marginRight="128dp"
+        android:background="@android:color/holo_green_dark"
+        android:text="음악재생"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/video"
+        android:layout_width="150dp"
+        android:layout_height="50dp"
+        android:layout_below="@+id/music"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="128dp"
+        android:layout_marginLeft="128dp"
+        android:layout_marginTop="22dp"
+        android:layout_marginEnd="128dp"
+        android:layout_marginRight="128dp"
+        android:background="@android:color/holo_green_dark"
+        android:text="동영상재생"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <LinearLayout
+        android:id="@+id/music5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/music"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="false"
+        android:layout_alignParentTop="true"
+        android:layout_centerVertical="true"
+        android:layout_marginTop="340dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/music1"
+            style="@style/Widget.AppCompat.Button.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="2dp"
+            android:text="재생"
+            android:textSize="14dp" />
+
+        <Button
+            android:id="@+id/music2"
+            style="@style/Widget.AppCompat.Button.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="2dp"
+            android:layout_marginRight="2dp"
+            android:text="일시정지"
+            android:textSize="14dp" />
+
+        <Button
+            android:id="@+id/music3"
+            style="@style/Widget.AppCompat.Button.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="2dp"
+            android:layout_marginRight="2dp"
+            android:text="재시작"
+            android:textSize="14dp" />
+
+        <Button
+            android:id="@+id/music4"
+            style="@style/Widget.AppCompat.Button.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="2dp"
+            android:layout_marginRight="5dp"
+            android:text="정지"
+            android:textSize="14dp" />
+        <!--        android:onClick="mOnClick"-->
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/video1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/music5"
+        android:layout_alignBaseline="@id/music5"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="false"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="false"
+        android:layout_centerVertical="true"
+        android:layout_marginTop="440dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <TextView
+            style="@style/Widget.AppCompat.Button.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="10dp"
+            android:background="#FF9E80"
+            android:padding="5dp"
+            android:text="동영상재생"
+            android:textSize="14dp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/movie1"
+            style="@style/Widget.AppCompat.Button.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="10dp"
+            android:text="일시정지"
+            android:textSize="14dp" />
+
+        <Button
+            android:id="@+id/movie2"
+            style="@style/Widget.AppCompat.Button.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="10dp"
+            android:text="다시시작"
+            android:textSize="14dp" />
+    </LinearLayout>
+
+
+</RelativeLayout>

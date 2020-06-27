@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <external-path
+        name="my_images"
+        path="/" />  <!--  Environment.getExternalStorageDirectory() 외부 저장소-->
+    <files-path
+        name="file_path"
+        path="/" /> <!--Context.getFilesDir() 내부 저장소-->
+    <external-files-path
+        name="external_file"
+        path="/" /> <!-- Context.getExternalFilesDir() 외부 저장소-->
+</paths>
+<!--Environment.getExternalStorageDirectory() 로 찾음 외부저장-->
+<!--Context.getFileDir() 내부저장-->
+<!--Context.getExternalFileDir(null) 외부저장-->
+<!--    path="/" 을 바꾸면 에러 ??-->

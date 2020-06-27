@@ -1,0 +1,8 @@
+<root>
+    <item
+        name='android.content.ContentResolver android.graphics.Bitmap loadThumbnail(android.net.Uri, android.util.Size, android.os.CancellationSignal)'>
+        <annotation name='org.jetbrains.annotations.Contract'>
+            <val name="pure" val="true" />
+        </annotation>
+    </item>
+</root>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/songFragment">
+
+    <fragment
+        android:id="@+id/songFragment"
+        android:name="com.example.capture.frags.SongFragment"
+        android:label="SongFragment" >
+        <action
+            android:id="@+id/action_songFragment_to_playerFragment"
+            app:destination="@id/playerFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/playerFragment"
+        android:name="com.example.capture.frags.PlayerFragment"
+        android:label="PlayerFragment" >
+        <action
+            android:id="@+id/action_playerFragment_to_listViewFragment"
+            app:destination="@id/listViewFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/listViewFragment"
+        android:name="com.example.capture.frags.ListViewFragment"
+        android:label="ListViewFragment" >
+        <action
+            android:id="@+id/action_listViewFragment_to_songFragment"
+            app:destination="@id/songFragment" />
+    </fragment>
+</navigation>
