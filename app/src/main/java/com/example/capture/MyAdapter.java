@@ -23,6 +23,8 @@ import java.util.List;
 //            // ...
 //        }
 //   }
+//
+// Item class 에 대한 정의를 Adapter 내부(혹은 외부)에 정의 함
 
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyAudioViewHolder> {
     private List<AudioAdapter.AudioItem> mItems = new ArrayList<>();
@@ -107,7 +109,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyAudioViewHolder>
 //            itemView.setOnClickListener(new View.OnClickListener() {
 //                @Override
 //                public void onClick(View v) {
-//                    int pos = getAdapterPosition();
+//                    int pos = getAdapterPosition();  // 위치 찾기
 //                    if (pos != RecyclerView.NO_POSITION) {
 //                        if (mListener != null) {
 //                            mListener.onItemClicked(mItems.get(pos));
@@ -118,6 +120,5 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyAudioViewHolder>
 
         }
 
-        
     }
 }
