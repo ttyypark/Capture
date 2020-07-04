@@ -25,6 +25,10 @@ import java.util.List;
 //   }
 //
 // Item class 에 대한 정의를 Adapter 내부(혹은 외부)에 정의 함
+// AudioAdapter.AudioItem Item
+//
+//  RecyclerView의 Item layout 정의 필요 R.layout.listitem_audio
+//
 
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyAudioViewHolder> {
     private List<AudioAdapter.AudioItem> mItems = new ArrayList<>();
@@ -119,6 +123,5 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyAudioViewHolder>
 //            });
 
         }
-
     }
 }
