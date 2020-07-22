@@ -7,6 +7,7 @@ import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.IBinder;
@@ -24,8 +25,10 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
+import com.example.capture.CaptureWidgetProvider;
 import com.example.capture.FragmentCallback;
 import com.example.capture.MainActivity;
+import com.example.capture.MusicApplication;
 import com.example.capture.MusicPlayerActivity;
 import com.example.capture.R;
 import com.example.capture.services.MusicService;
@@ -37,7 +40,6 @@ import org.greenrobot.eventbus.Subscribe;
 import java.util.Locale;
 
 public class PlayerFragment extends Fragment implements View.OnClickListener {
-//    FragmentCallback callback;
     private MusicService mService;
     private boolean mBound = false;
 
@@ -76,10 +78,10 @@ public class PlayerFragment extends Fragment implements View.OnClickListener {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        mAlbumImageView = (ImageView) view.findViewById(R.id.album_image);
-        mDurationTextView = (TextView) view.findViewById(R.id.duration_text);
-        mCurrentTimeTextView = (TextView) view.findViewById(R.id.current_time_text);
-        mSeekBar = (SeekBar) view.findViewById(R.id.seekBar);
+        mAlbumImageView = view.findViewById(R.id.album_image);
+        mDurationTextView = view.findViewById(R.id.duration_text);
+        mCurrentTimeTextView = view.findViewById(R.id.current_time_text);
+        mSeekBar = view.findViewById(R.id.seekBar);
         mPlayLoop = view.findViewById(R.id.play_loop);
         mStopPlayer = view.findViewById(R.id.stop_player);
 
@@ -112,8 +114,12 @@ public class PlayerFragment extends Fragment implements View.OnClickListener {
 
         EventBus.getDefault().register(this);
 
-        Intent intent = new Intent(getActivity(), MusicService.class);
-        getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+// MusicApplication 활용
+        if(mService == null) mService = MusicApplication.getInstance().getServiceInterface().mService;
+        updateUI(mService.isPlaying());
+        mBound = true;
+//        Intent intent = new Intent(getActivity(), MusicService.class);
+//        getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
     }
 
@@ -124,7 +130,8 @@ public class PlayerFragment extends Fragment implements View.OnClickListener {
         EventBus.getDefault().unregister(this);
 
         if (mBound) {
-            getActivity().unbindService(mConnection);
+//            // MusicApplication 활용
+//            getActivity().unbindService(mConnection);
             mBound = false;
         }
         Log.d(TAG, "종료됨 ");
@@ -176,6 +183,11 @@ public class PlayerFragment extends Fragment implements View.OnClickListener {
                     Glide.with(this).load(R.drawable.snow).into(mAlbumImageView);
                 }
 
+//                if(mService.getMediaPlayer().isLooping()) {
+//                    mPlayLoop.setText("연속재생");
+//                } else {
+//                    mPlayLoop.setText("반복재생");
+//                }
                 if(mService.getMediaPlayer().isLooping()) {
                     mPlayLoop.setText("연속재생");
                 } else {
@@ -247,11 +259,28 @@ public class PlayerFragment extends Fragment implements View.OnClickListener {
     }
 
     public void stopPlayer(){
+
+        // TODO: 2020-07-07
+
         mService.getMediaPlayer().stop();
         mService.getMediaPlayer().release();
         mService.mMediaPlayer = null;
+
+        mService.removeNotificationPlayer();    // notification 삭제
+        // widget 종료
+        mService.sendBroadcast(new Intent(MusicService.BroadcastActions.PLAY_STATE_CHANGED,   // action
+                Uri.EMPTY,                                              // data
+                getContext(),                                           // context
+                CaptureWidgetProvider.class));                          //class
+        // Service 종료
         final Intent serviceIntent = new Intent(getContext(), MusicService.class);
         getContext().stopService(serviceIntent);
+
+        try {
+            finalize();         // ???? 정리?  finish() ?
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
         final Intent intent = new Intent(mService.getApplicationContext(), MainActivity.class);
         startActivity(intent);
     }
