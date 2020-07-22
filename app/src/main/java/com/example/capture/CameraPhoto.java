@@ -57,7 +57,7 @@ public class CameraPhoto extends AppCompatActivity implements View.OnClickListen
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        imageView = findViewById(R.id.imageView);
+        imageView = findViewById(R.id.imagePhotoView);
 
         findViewById(R.id.button).setOnClickListener(this);
         findViewById(R.id.button2).setOnClickListener(this);
@@ -130,7 +130,6 @@ public class CameraPhoto extends AppCompatActivity implements View.OnClickListen
             }
         } else {
             Log.v("알림", "저장공간에 접근 불가능");
-            return;
         }
     }
 
@@ -200,7 +199,12 @@ public class CameraPhoto extends AppCompatActivity implements View.OnClickListen
 // ===================================================================================
 
 
-        if (!storageDir.exists()) storageDir.mkdirs();
+        if (!storageDir.exists()) {
+            boolean mkdirs = storageDir.mkdirs();
+            if( !mkdirs) {
+                Log.e("Error : ", "storageDir.mkdirs ");
+            }
+        }
 
         image = new File(storageDir, imageFileName + ".jpg");
 //        image = File.createTempFile(
