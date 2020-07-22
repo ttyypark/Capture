@@ -25,8 +25,6 @@ public class VideoPlayerActivity extends AppCompatActivity
     private VideoFragment mVideoFragment;
     private VideoPlayerFragment mVideoPlayerFragment;
 
-    private MediaPlayer mMediaPlayer;
-    private TabLayout tabLayout;
     private ViewPager viewPager;
 
     @Override
@@ -34,8 +32,8 @@ public class VideoPlayerActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_player);
 
-        tabLayout = (TabLayout) findViewById(R.id.tab);
-        viewPager = (ViewPager) findViewById(R.id.view_pager);
+        TabLayout tabLayout = findViewById(R.id.tab);
+        viewPager = findViewById(R.id.view_pager);
 
         // 플레이어
         mVideoPlayerFragment = new VideoPlayerFragment();
@@ -49,7 +47,7 @@ public class VideoPlayerActivity extends AppCompatActivity
         tabLayout.setupWithViewPager(viewPager);
 
 //      ===========================================
-        mMediaPlayer = new MediaPlayer();
+        MediaPlayer mMediaPlayer = new MediaPlayer();
 
     }
 
