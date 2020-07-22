@@ -92,11 +92,11 @@ public class CaptureWidgetProvider extends AppWidgetProvider {
 
         updatePlayState(context, remoteViews); // 재생상태 업데이트.
 
-        Intent actionLaunch = new Intent(context, MusicPlayerActivity.class);
-        Intent actionTogglePlay = new Intent(NotificationPlayer.CommandActions.TOGGLE_PLAY);
-        Intent actionForward = new Intent(NotificationPlayer.CommandActions.FORWARD);
-        Intent actionRewind = new Intent(NotificationPlayer.CommandActions.REWIND);
-        Intent actionClose = new Intent(NotificationPlayer.CommandActions.CLOSE);
+        Intent actionLaunch = new Intent(context, MainActivity.class);
+        Intent actionTogglePlay = new Intent(mService.TOGGLE_PLAY);
+        Intent actionForward = new Intent(mService.FORWARD);
+        Intent actionRewind = new Intent(mService.REWIND);
+        Intent actionClose = new Intent(mService.CLOSE);
 
         PendingIntent launch = PendingIntent.getActivity(context, 0, actionLaunch, PendingIntent.FLAG_UPDATE_CURRENT);
         PendingIntent togglePlay = PendingIntent.getService(context, 0, actionTogglePlay, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -114,13 +114,13 @@ public class CaptureWidgetProvider extends AppWidgetProvider {
     }
 
 
-    private void updateAlbumArt(Context context, RemoteViews remoteViews) {
-        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-        int appWidgetIds[] = appWidgetManager.getAppWidgetIds(new ComponentName(context, getClass()));
-        long albumId = MusicPlayerActivity.getInstance().getServiceInterface().getAudioItem().mAlbumId;
-        Uri albumArtUri = ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), albumId);
-        Picasso.get().load(albumArtUri).into(remoteViews, R.id.img_albumart, appWidgetIds);
-    }
+//    private void updateAlbumArt(Context context, RemoteViews remoteViews) {
+//        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+//        int appWidgetIds[] = appWidgetManager.getAppWidgetIds(new ComponentName(context, getClass()));
+//        long albumId = MusicPlayerActivity.getInstance().getServiceInterface().getAudioItem().mAlbumId;
+//        Uri albumArtUri = ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), albumId);
+//        Picasso.get().load(albumArtUri).into(remoteViews, R.id.img_albumart, appWidgetIds);
+//    }
 
     private void updatePlayState(Context context, RemoteViews remoteViews) {
 

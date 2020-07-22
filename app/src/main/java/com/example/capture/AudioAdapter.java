@@ -30,17 +30,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AudioAdapter extends RecyclerView.Adapter <AudioAdapter.MyAudioViewHolder> {
-    interface onItemClickListener{
+    public interface onItemClickListener{
         void onItemClicked(Uri model);
-//        void onItemClicked(AudioItem model);
     }
+    private onItemClickListener mListener;
+    private FragmentCallback callback;
 
     private String TAG = "오디오어댑터";
     private Context mContext;
-    private onItemClickListener mListener;
-    public ArrayList<AudioItem> mItems;  // mSongList와 둘중 하나 선택
     public ArrayList<Uri> mSongList;
     private Uri mUri;
+
+    // 리스너 객체 전달함수
+    public void setOnItemClickListener(onItemClickListener listener){
+        this.mListener = listener;
+    }
 
     public AudioAdapter() {}
 
@@ -49,25 +53,25 @@ public class AudioAdapter extends RecyclerView.Adapter <AudioAdapter.MyAudioView
     }
 
     public AudioAdapter(Context context) {
-//            super(context, mSongList);
         this.mContext = context;
-        this.mSongList = getSongList();
+        if(mSongList == null) this.mSongList = getSongList();
+        if (context instanceof FragmentCallback) {
+            callback = (FragmentCallback) context;
+        }
     }
 
-    public void setItems(ArrayList <AudioItem> items) {
-        this.mItems = items;
-        notifyDataSetChanged();
-    }
-
-    public void setSongs(ArrayList <Uri> Songs) {
+    public void setSongs(ArrayList <Uri> Songs) {       // ?? 사용처 확인
         this.mSongList = Songs;
         notifyDataSetChanged();
     }
 
+    // onCreateViewHolder() - 아이템 뷰를 위한 뷰홀더 객체 생성하여 리턴.
     @NonNull
     @Override
     public MyAudioViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.listitem_audio, parent, false);
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.listitem_audio, parent, false);
+//        View view = ((LayoutInflater)parent.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.listitem_audio, parent, false) ;
         final MyAudioViewHolder viewHolder = new MyAudioViewHolder(view);
         view.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -75,25 +79,24 @@ public class AudioAdapter extends RecyclerView.Adapter <AudioAdapter.MyAudioView
                 if(mListener != null){
                     final Uri item = mSongList.get(viewHolder.getAdapterPosition());
                     mListener.onItemClicked(item);
-//                    final AudioItem item = mItems.get(viewHolder.getAdapterPosition());
-//                    mListener.onItemClicked(item);
                 }
             }
         });
         return viewHolder;
     }
 
+    // onBindViewHolder() - position에 해당하는 데이터를 뷰홀더의 아이템뷰에 표시.
     @Override
     public void onBindViewHolder(@NonNull MyAudioViewHolder viewHolder, int position) {
         mUri = mSongList.get(position);
 
+        Log.i(TAG, "BindViewHolder : " + position + "");
 //        MediaMetadataRetriever 를 이용하여 데이터 처리 ================
         final MediaMetadataRetriever retriever;
         try {
             retriever = new MediaMetadataRetriever();
             retriever.setDataSource(mContext, mUri);
             AudioItem audioItem = AudioItem.bindRetriever(retriever);
-//            AudioItem item = mItems.get(position);
             ((MyAudioViewHolder) viewHolder).setAudioItem(audioItem, position);
             Log.e(TAG, "onBinding Title:" + audioItem.mTitle + ", Artist:" + audioItem.mArtist + mUri);
 
@@ -102,9 +105,13 @@ public class AudioAdapter extends RecyclerView.Adapter <AudioAdapter.MyAudioView
             e.printStackTrace();
         }
 
-//        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+//        viewHolder.mView.setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View v) {
+//                if(mListener != null){
+//                    final Uri item = mSongList.get(viewHolder.getAdapterPosition());
+//                    mListener.onItemClicked(item);
+//                }
 //
 //                Log.d(TAG, "item 클릭 Uri : " + mUri);
 ////                    Log.d(TAG, "title : " + title);
@@ -124,11 +131,8 @@ public class AudioAdapter extends RecyclerView.Adapter <AudioAdapter.MyAudioView
 //                 * Axtivity 로 정보 쏘기
 //                 *  {@link com.example.capture.MusicPlayerActivity#setPage(int)}
 //                 */
-//                // UI 갱신 ;
-//                int event = 1;
-//                EventBus.getDefault().post(event);  // ** 동작하지 않음 => callback 으로?
 //
-////                if (callback != null) callback.setPage(event);
+//                if (callback != null) callback.setPage(1);
 //            }
 //        });
     }
@@ -152,7 +156,8 @@ public class AudioAdapter extends RecyclerView.Adapter <AudioAdapter.MyAudioView
 //        sortOrder);
         if (cursor != null) {
             while (cursor.moveToNext()) {
-                Uri uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, cursor.getLong(
+                Uri uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                        cursor.getLong(
                         cursor.getColumnIndexOrThrow(BaseColumns._ID)));
                 songList.add(uri);
                 Log.d(TAG, "getSongList Title:" + cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)));
@@ -162,17 +167,24 @@ public class AudioAdapter extends RecyclerView.Adapter <AudioAdapter.MyAudioView
         return songList;
     }
 
+    // 아이템 뷰를 저장하는 뷰홀더 클래스.
     public class MyAudioViewHolder extends RecyclerView.ViewHolder{
         private final Uri artworkUri = Uri.parse("content://media/external/audio/albumart");
         private ImageView mImgAlbumArt;
         private TextView mTxtTitle;
         private TextView mTxtSubTitle;
         private TextView mTxtDuration;
-        private AudioItem mItem;
-        private int mPosition;
+//        private AudioItem mItem;
+//        private int mPosition;
+//        private View mView;
+
+        // TODO: 2020-07-16
+        // viewholder 재사용
 
         public MyAudioViewHolder(@NonNull View view) {
             super(view);
+            // 뷰 객체에 대한 참조. (hold strong reference)
+//            mView = view;
             mImgAlbumArt = (ImageView) view.findViewById(R.id.img_albumart);
             mTxtTitle = (TextView) view.findViewById(R.id.txt_title);
             mTxtSubTitle = (TextView) view.findViewById(R.id.txt_sub_title);
@@ -181,6 +193,9 @@ public class AudioAdapter extends RecyclerView.Adapter <AudioAdapter.MyAudioView
 //                @Override
 //                public void onClick(View v) {
 //                    // ..
+//                    if(mListener != null){
+//                        mListener.onItemClicked(mUri);
+//                    }
 ////                    // mSongList 초기화 ??
 ////                    MusicApplication.getInstance().getServiceInterface().setmSongList(getSongList());
 ////
@@ -202,16 +217,14 @@ public class AudioAdapter extends RecyclerView.Adapter <AudioAdapter.MyAudioView
 //                     * Activity 로 정보 쏘기
 //                     *  {@link com.example.capture.MusicPlayerActivity#setPage(int)}
 //                     */
-//                    // UI 갱신 ;
-//                    int event = 1;
-//                    EventBus.getDefault().post(event);  // ** 동작하지 않음 => callback 으로?
+//                     if (callback != null) callback.setPage(1);
 //                }
 //            });
         }
 
         public void setAudioItem(AudioItem item, int position) {
-            mItem = item;
-            mPosition = position;
+//            mItem = item;
+//            mPosition = position;
             mTxtTitle.setText(item.mTitle);
             mTxtSubTitle.setText(item.mArtist + "(" + item.mAlbum + ")");
             mTxtDuration.setText(DateFormat.format("mm:ss", item.mDuration));

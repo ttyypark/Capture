@@ -21,6 +21,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
+import com.example.capture.MusicApplication;
 import com.example.capture.R;
 import com.example.capture.services.MusicService;
 //import com.squareup.otto.Subscribe;
@@ -115,9 +116,12 @@ public class MusicControllerFragment extends Fragment implements View.OnClickLis
         // EventBus 설정
         EventBus.getDefault().register(this);
 
-        // Service 설정
-        Intent intent = new Intent(getActivity(), MusicService.class);
-        getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+// MusicApplication 활용
+        if(mService == null) mService = MusicApplication.getInstance().getServiceInterface().mService;
+        updateUI(mService.isPlaying());
+        mBound = true;
+//        Intent intent = new Intent(getActivity(), MusicService.class);
+//        getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -129,7 +133,8 @@ public class MusicControllerFragment extends Fragment implements View.OnClickLis
 
         // Service 이용 해제
         if (mBound) {
-            getActivity().unbindService(mConnection);
+//            // MusicApplication 활용
+//            getActivity().unbindService(mConnection);
             mBound = false;
         }
     }

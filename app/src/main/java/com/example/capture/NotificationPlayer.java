@@ -66,10 +66,10 @@ public class NotificationPlayer {
                 }
 
                 Intent mainActivity = new Intent(mService, MusicPlayerActivity.class);
-                Intent actionTogglePlay = new Intent(CommandActions.TOGGLE_PLAY);
-                Intent actionForward = new Intent(CommandActions.FORWARD);
-                Intent actionRewind = new Intent(CommandActions.REWIND);
-                Intent actionClose = new Intent(CommandActions.CLOSE);
+                Intent actionTogglePlay = new Intent(mService.TOGGLE_PLAY);
+                Intent actionForward = new Intent(mService.FORWARD);
+                Intent actionRewind = new Intent(mService.REWIND);
+                Intent actionClose = new Intent(mService.CLOSE);
                 PendingIntent togglePlay = PendingIntent.getService(mService, 0, actionTogglePlay, 0);
                 PendingIntent forward = PendingIntent.getService(mService, 0, actionForward, 0);
                 PendingIntent rewind = PendingIntent.getService(mService, 0, actionRewind, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -142,6 +142,7 @@ public class NotificationPlayer {
         }
     }
 
+    @SuppressLint("StaticFieldLeak")
     private class NotificationManagerBuilder extends AsyncTask<Void, Void, Notification> {
         private RemoteViews mRemoteViews;
         private NotificationCompat.Builder mNotificationBuilder;
@@ -258,10 +259,10 @@ public class NotificationPlayer {
 
         private RemoteViews createRemoteView(int layoutId) {
             RemoteViews remoteView = new RemoteViews(mService.getPackageName(), layoutId);
-            Intent actionTogglePlay = new Intent(CommandActions.TOGGLE_PLAY);
-            Intent actionForward = new Intent(CommandActions.FORWARD);
-            Intent actionRewind = new Intent(CommandActions.REWIND);
-            Intent actionClose = new Intent(CommandActions.CLOSE);
+            Intent actionTogglePlay = new Intent(mService.TOGGLE_PLAY);
+            Intent actionForward = new Intent(mService.FORWARD);
+            Intent actionRewind = new Intent(mService.REWIND);
+            Intent actionClose = new Intent(mService.CLOSE);
             PendingIntent togglePlay = PendingIntent.getService(mService, 0, actionTogglePlay, 0);
             PendingIntent forward = PendingIntent.getService(mService, 0, actionForward, 0);
             PendingIntent rewind = PendingIntent.getService(mService, 0, actionRewind, 0);
@@ -297,12 +298,12 @@ public class NotificationPlayer {
         }
     }
 
-    public class CommandActions {
-        public final static String REWIND = "REWIND";
-        public final static String TOGGLE_PLAY = "TOGGLE_PLAY";
-        public final static String FORWARD = "FORWARD";
-        public final static String CLOSE = "CLOSE";
-    }
+//    public class CommandActions {
+//        public final static String REWIND = "REWIND";
+//        public final static String TOGGLE_PLAY = "TOGGLE_PLAY";
+//        public final static String FORWARD = "FORWARD";
+//        public final static String CLOSE = "CLOSE";
+//    }
 
 }
 

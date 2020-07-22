@@ -14,7 +14,6 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
@@ -60,7 +59,7 @@ public class CaptureWidget extends AppWidgetProvider {
         views.setTextViewText(R.id.message_text, String.valueOf(number));
 
         //시작되면서 지정 이미지로 교체
-        views.setImageViewResource(R.id.imageView, R.drawable.snow);
+        views.setImageViewResource(R.id.imagePhotoView, R.drawable.snow);
 
 
         //버튼1 클릭 : 클릭 성공 메세지 출력!
@@ -201,7 +200,7 @@ public class CaptureWidget extends AppWidgetProvider {
             if(isCancelled()) {
                 bitmap = null;
             }
-            views.setImageViewBitmap(R.id.imageView, bitmap);
+            views.setImageViewBitmap(R.id.imagePhotoView, bitmap);
             appWidgetManager.updateAppWidget(widgetID, views);
 
         }

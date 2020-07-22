@@ -2,6 +2,7 @@ package com.example.capture;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
@@ -12,9 +13,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 
 import android.database.Cursor;
+import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -33,15 +36,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MusicPlayerActivity extends AppCompatActivity {
-//        implements FragmentCallback {
+
+// Fragment updateUI 정의?
+//
+public class MusicPlayerActivity extends AppCompatActivity implements FragmentCallback {
     private static final int LOADER_ID = 10101;
     private PlayerFragment mPlayerFragment;
     private ListViewFragment mListViewFragment;
     private SongFragment mSongFragment;
     private static final String TAG = "음악플레이어 Activity";
 
-    public static ArrayList<Uri> mSongList; // uri로 모든 음악정보 추출 가능?
+//    public static ArrayList<Uri> mSongList; // uri로 모든 음악정보 추출 가능?
     public TabLayout tabLayout;
     private ViewPager viewPager;
     private MediaPlayer mMediaPlayer;
@@ -59,7 +64,7 @@ public class MusicPlayerActivity extends AppCompatActivity {
         tabLayout = (TabLayout) findViewById(R.id.tab);
         viewPager = (ViewPager) findViewById(R.id.view_pager);
 
-        mSongList = new ArrayList<>();
+//        mSongList = new ArrayList<>();
 
         // 플레이어
         mPlayerFragment = new PlayerFragment();
@@ -83,9 +88,17 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
 //      ===========================================
         mMediaPlayer = new MediaPlayer();
-        mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
-//      =========================================== connection
+//        mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            mMediaPlayer.setAudioAttributes(
+                    new AudioAttributes
+                            .Builder()
+                            .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                            .build());
+        }
+
+        //      =========================================== connection
         mInterface = new MusicServiceInterface(getApplicationContext());
         mInstance = this;
     }
@@ -100,10 +113,21 @@ public class MusicPlayerActivity extends AppCompatActivity {
 
 //==========================================================================
 // Interface callback
-    @Subscribe
-    public void setPage(Integer pageNum){
+    @Override
+    public void setPage(int pageNum){
         viewPager.setCurrentItem(pageNum);
     }
+
+//    @Override
+//    public void stopMusic(){
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+//            finishAffinity();
+//        } else {
+//            ActivityCompat.finishAffinity(this.getParent());
+//        }
+//        System.runFinalization();
+//        System.exit(0);
+//    }
 
     /** =========================================
      * EventBus 설정
@@ -124,61 +148,76 @@ public class MusicPlayerActivity extends AppCompatActivity {
         EventBus.getDefault().unregister(this);
         Log.d(TAG, "종료됨");
     }
-//    ===========================================
-    /**
-     * EventBus 에서 보내는 이벤트 수신하는 콜백 메서드
-     * @param uri
-     */
-    @Subscribe
-    public void playMusic(Uri uri){
-        final Uri mUri = uri;
-        try {
-            if(isPlaying()) {
-                mMediaPlayer.reset();
-            }
-            mMediaPlayer.setDataSource(this, uri);
-            mMediaPlayer.prepareAsync();
-            mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                @Override
-                public void onPrepared(MediaPlayer mp) {
-                    mp.start();
-                    Log.d(TAG, "재생 Uri : " + mUri);
-                    /**
-                     * {@link com.example.capture.frags.MusicControllerFragment#updatePlayButton(Boolean)}
-                     */
-                    EventBus.getDefault().post(isPlaying());
-                }
-            });
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-//    ===========================================
+////    ===========================================
+//    /**
+//     * EventBus 에서 보내는 이벤트 수신하는 콜백 메서드
+//     * @param uri
+//     */
+//    @Subscribe
+//    public void playMusic(Uri uri){
+//        final Uri mUri = uri;
+//        try {
+//            if(isPlaying()) {
+//                mMediaPlayer.reset();
+//            }
+//            mMediaPlayer.setDataSource(this, uri);
+//            mMediaPlayer.prepareAsync();
+//            mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+//                @Override
+//                public void onPrepared(MediaPlayer mp) {
+//                    mp.start();
+//                    Log.d(TAG, "재생 Uri : " + mUri);
+//                    /**
+//                     * {@link com.example.capture.frags.MusicControllerFragment#updateUI(Boolean)} (Boolean)}
+//                     */
+//                    /**
+//                     * {@link com.example.capture.frags.PlayerFragment#updateUI(Boolean)} (Boolean)}
+//                     */
+//                    EventBus.getDefault().post(isPlaying());
+//                }
+//            });
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+////    ===========================================
 
     @Subscribe
     public void stopPlayer(Integer integer){
-        if(integer == 3) mPlayerFragment.stopPlayer();
+        if(integer == 3) {
+//            mPlayerFragment.stopPlayer();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                finishAffinity();
+            } else {
+                ActivityCompat.finishAffinity(this.getParent());
+            }
+            System.runFinalization();
+            System.exit(0);
+        }
     };
 
-    @Subscribe
-    public void clickPlayButton(View v){
-        if(isPlaying()){
-            mMediaPlayer.pause();
-        } else {
-            mMediaPlayer.start();
-        }
-        /**
-         * {@link com.example.capture.frags.MusicControllerFragment#updatePlayButton(Boolean)}
-         */
-        EventBus.getDefault().post(isPlaying());
-    }
+//    @Subscribe
+//    public void clickPlayButton(View v){
+//        if(isPlaying()){
+//            mMediaPlayer.pause();
+//        } else {
+//            mMediaPlayer.start();
+//        }
+//        /**
+//         * {@link com.example.capture.frags.MusicControllerFragment#updateUI(Boolean)} (Boolean)}
+//         */
+//        /**
+//         * {@link com.example.capture.frags.PlayerFragment#updateUI(Boolean)} (Boolean)}
+//         */
+//        EventBus.getDefault().post(isPlaying());
+//    }
 
-    public boolean isPlaying(){
-        if(mMediaPlayer != null){
-            return mMediaPlayer.isPlaying();
-        }
-        return false;
-    }
+//    public boolean isPlaying(){
+//        if(mMediaPlayer != null){
+//            return mMediaPlayer.isPlaying();
+//        }
+//        return false;
+//    }
 
     private class MusicPlayerPagerAdapter extends FragmentPagerAdapter{
 

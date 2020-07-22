@@ -33,6 +33,8 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 //import androidx.recyclerview.widget.RecyclerView.ViewHolder;
 
@@ -87,7 +89,7 @@ public class SongFragment extends Fragment {
 
         Intent intent = new Intent(getActivity(), MusicService.class);
         getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-        Log.d(TAG , "서비스 연결");
+        Log.e(TAG , "서비스 연결");
     }
 
     @Override
@@ -97,7 +99,7 @@ public class SongFragment extends Fragment {
         if (mBound) {
             getActivity().unbindService(mConnection);
             mBound = false;
-            Log.d(TAG , "서비스 연결 해제");
+            Log.e(TAG , "서비스 연결 해제");
         }
     }
 
@@ -117,8 +119,37 @@ public class SongFragment extends Fragment {
 
 //========================================================
         mAdapter = new AudioAdapter(mContext);
-//       mSongList로 데이터를 가져와서 처리
-        MusicPlayerActivity.mSongList = mAdapter.mSongList;  // ?
+        mAdapter.setOnItemClickListener(new AudioAdapter.onItemClickListener() {
+            @Override
+            public void onItemClicked(Uri mUri) {
+                //**********************
+                Log.d("AudioAdapter", "item 클릭 Uri : " + mUri);
+
+                //  startService로 MusicService#playMusic 사용 ------------------대체
+                /**
+                 * 음악 틀기
+                 * {@link com.example.capture.services.MusicService#playMusic(Uri)}
+                 */
+                Intent intent = new Intent(mContext, MusicService.class);
+                intent.setAction(MusicService.ACTION_PLAY);
+                intent.putExtra("uri", mUri);
+                mContext.startService(intent);
+
+                // fragment 옮기기 -> player fragment
+                /**
+                 * Activity 로 정보 쏘기
+                 *  {@link com.example.capture.MusicPlayerActivity#setPage(int)}
+                 */
+                // UI 갱신 ;
+                if (callback != null) callback.setPage(1);
+//                int event = 1;
+//                EventBus.getDefault().post(event);  // ** Boolean 으로
+                //**********************
+
+            }
+        });
+
+//        MusicPlayerActivity.mSongList = mAdapter.mSongList;  // ?
 //        makeSongList();
         Log.d("노래개수 : " , String.valueOf(mAdapter.mSongList.size()));
 
@@ -143,10 +174,10 @@ public class SongFragment extends Fragment {
 //        recyclerView.setAdapter(new SongRecyclerAdapter(getActivity(), null));
 
 //========================================================
-//        // 추가
-//        LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
-//        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-//        recyclerView.setLayoutManager(layoutManager);
+        // GridLayout 기능추가
+        GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), 1);
+        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        recyclerView.setLayoutManager(layoutManager);
     }
 
 
@@ -520,10 +551,11 @@ public class SongFragment extends Fragment {
             mBound = true;
 
             /**
-             * 아래쪽 프래그먼트로 정보 쏘기
-             *  {@link com.example.capture.frags.PlayerFragment#updateUI(Boolean)}
+             * {@link MusicControllerFragment#updateUI(Boolean)}
              */
-            // UI 갱신
+            /**
+             * {@link PlayerFragment#updateUI(Boolean)}
+             */
             EventBus.getDefault().post(mService.isPlaying());
         }
 

@@ -1,5 +1,6 @@
 package com.example.capture.services;
 
+import android.app.ActivityManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -10,6 +11,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Icon;
+import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
@@ -24,6 +26,8 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
+
 import android.widget.RemoteViews;
 
 import com.example.capture.AudioAdapter;
@@ -31,6 +35,7 @@ import com.example.capture.CaptureWidget;
 import com.example.capture.CaptureWidgetProvider;
 import com.example.capture.Foreground;
 import com.example.capture.FragmentCallback;
+import com.example.capture.MainActivity;
 import com.example.capture.MusicPlayerActivity;
 import com.example.capture.NotificationPlayer;
 import com.example.capture.R;
@@ -43,30 +48,38 @@ import org.greenrobot.eventbus.EventBus;
 import java.io.IOException;
 import java.util.ArrayList;
 
+//        EventBus.getDefault().post(isPlaying());    // fragment쪽 UI
+//        updateNotificationPlayer();                 // Notification쪽 UI
+//        sendBroadcast(new Intent(BroadcastActions.PREPARED,  // Widget쪽
+
 public class MusicService extends Service {
     public static final String ACTION_PREV = "prev";
     public static final String ACTION_NEXT = "next";
     public static final String ACTION_PLAY = "play";
     public static final String ACTION_RESUME = "resume";
+    public final static String REWIND = "REWIND";
+    public final static String TOGGLE_PLAY = "TOGGLE_PLAY";
+    public final static String FORWARD = "FORWARD";
+    public final static String CLOSE = "CLOSE";
     public static final String TAG = "MusicService";
 
-    private MediaMetadataRetriever mRetriever;
-//    private FragmentCallback callback;
+    private boolean isPrepared;
     private Context mContext;
+    private ArrayList<Uri> mSongList;
+    private Uri mCurrentUri;
+    private int mIndex = 0;
 
     private final IBinder mBinder = new LocalBinder();
-    private ArrayList<Uri> mSongList;
     public MediaPlayer mMediaPlayer;
-    private boolean isPrepared;
-    private Uri mCurrentUri;
+    private MediaMetadataRetriever mRetriever;
     private NotificationPlayer mNotificationPlayer;
     private AudioAdapter mAudioAdapter;
 
-    private int mIndex = 0;
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
+        stopSelf();   // 서비스 종료 ?????
         Log.d(TAG, "*****************서비스 종료됨 onTaskRemoved");
     }
 
@@ -88,11 +101,6 @@ public class MusicService extends Service {
 
         mContext = getApplicationContext();
 
-//        if (mContext instanceof FragmentCallback) {
-//            callback = (FragmentCallback) mContext;
-//        }
-
-//        mSongList = new ArrayList<>();
         mAudioAdapter = new AudioAdapter(mContext);    // mSongList 설정
         mSongList = mAudioAdapter.mSongList;
 //-----------------------------------------------------------
@@ -101,7 +109,7 @@ public class MusicService extends Service {
         mMediaPlayer = new MediaPlayer();
         mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
 
-////-----------------------------------------------------------
+//-----------------------------------------------------------
         mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
@@ -114,12 +122,12 @@ public class MusicService extends Service {
                 /**
                  * {@link PlayerFragment#updateUI(Boolean)}
                  */
-                EventBus.getDefault().post(isPlaying());    // fragment쪽은 eventBus로
+                EventBus.getDefault().post(isPlaying());    // fragment쪽 UI는  eventBus로
                 updateNotificationPlayer();                 // Notification쪽
-                sendBroadcast(new Intent(BroadcastActions.PREPARED,   // action
-                        Uri.EMPTY,                                              // data
-                        getApplicationContext(),                                // context
-                        CaptureWidgetProvider.class));                          //class
+                sendBroadcast(new Intent(BroadcastActions.PREPARED,  // Widget쪽 // action
+                        Uri.EMPTY,                                               // data
+                        getApplicationContext(),                                 // context
+                        CaptureWidgetProvider.class));                           //class
             }
         });
 
@@ -127,8 +135,8 @@ public class MusicService extends Service {
             @Override
             public void onCompletion(MediaPlayer mp) {
                 nextMusic();
-                updateNotificationPlayer();
-                sendBroadcast(new Intent(BroadcastActions.PLAY_STATE_CHANGED)); //재생상태 변경
+                updateNotificationPlayer();                                     // Notification쪽
+                sendBroadcast(new Intent(BroadcastActions.PLAY_STATE_CHANGED)); // Widget 재생상태 변경
             }
         });
 
@@ -136,8 +144,8 @@ public class MusicService extends Service {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
                 isPrepared = false;
-                updateNotificationPlayer();
-                sendBroadcast(new Intent(BroadcastActions.PLAY_STATE_CHANGED)); //재생상태 변경
+                updateNotificationPlayer();                                     // Notification쪽
+                sendBroadcast(new Intent(BroadcastActions.PLAY_STATE_CHANGED)); // Widget 재생상태 변경
                 return false;
             }
         });
@@ -158,7 +166,7 @@ public class MusicService extends Service {
         }
     }
 
-    private void removeNotificationPlayer() {
+    public void removeNotificationPlayer() {
         if (mNotificationPlayer != null) {
             mNotificationPlayer.removeNotificationPlayer();
         }
@@ -167,7 +175,6 @@ public class MusicService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "onStartCommand 시작됨");
 //      Error 인 상태에서는 음악 재생을 다시 시작...Stack check 필요?
         if(mMediaPlayer == null || mSongList == null) {
             Intent musicIntent = new Intent(getApplicationContext(), MusicPlayerActivity.class);
@@ -176,6 +183,8 @@ public class MusicService extends Service {
         }
 
         String action = intent.getAction();
+        Log.i(TAG, "onStartCommand 시작됨: " + action);
+
         switch (action) {
             case ACTION_PLAY:
                 playMusic((Uri) intent.getParcelableExtra("uri"));
@@ -190,16 +199,18 @@ public class MusicService extends Service {
                 prevMusic();
                 break;
 //-------------------------------------------
-            case NotificationPlayer.CommandActions.TOGGLE_PLAY:
+            case TOGGLE_PLAY:
                 clickResumeButton();
                 break;
-            case NotificationPlayer.CommandActions.REWIND:
+            case REWIND:
                 prevMusic();
                 break;
-            case NotificationPlayer.CommandActions.FORWARD:
+            case FORWARD:
                 nextMusic();
                 break;
-            case NotificationPlayer.CommandActions.CLOSE:
+            case CLOSE:
+
+                // TODO: 2020-07-07
 
 //   foreground service가 종료된 경우
                 removeNotificationPlayer();
@@ -216,11 +227,28 @@ public class MusicService extends Service {
                      */
                     EventBus.getDefault().post(3);
                 };
-                MusicService.this.onDestroy();   // 서비스 종료?
+
+                // Widget 상태변경 ****
+                sendBroadcast(new Intent(BroadcastActions.PLAY_STATE_CHANGED,   // action
+                        Uri.EMPTY,                                              // data
+                        getApplicationContext(),                                // context
+                        CaptureWidgetProvider.class));                          //class
+
+                try{
+                    MusicService.this.onDestroy();   // 서비스 종료?
+                } catch (Exception e){
+                    Log.e(TAG, " *******  서비스 종료 error");
+                }
+
+// system 종료 -------------------------
+                android.os.Process.killProcess(android.os.Process.myPid());
+//                moveTaskToBack(true);
+//                System.exit(0);
+
                 break;
         }
         return START_STICKY;
-// ----  return super.onStartCommand(intent, flags, startId);
+//        return super.onStartCommand(intent, flags, startId);
     }
 
     public MediaPlayer getMediaPlayer() {
@@ -244,9 +272,18 @@ public class MusicService extends Service {
             if (mMediaPlayer != null){
                 mMediaPlayer.stop();
                 mMediaPlayer.reset();
+            } else {
+                mMediaPlayer = new MediaPlayer();
             }
-//            mMediaPlayer = new MediaPlayer();
-            mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+//            mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                mMediaPlayer.setAudioAttributes(
+                        new AudioAttributes
+                                .Builder()
+                                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                                .build());
+            }
+
             mMediaPlayer.setDataSource(this, uri);
             mMediaPlayer.prepareAsync();
         } catch (IOException e) {
@@ -275,15 +312,19 @@ public class MusicService extends Service {
     }
 
     public void clickResumeButton(){
+        if(mMediaPlayer == null) return;   // widget에서 toggle
         if(isPlaying()) {
             mMediaPlayer.pause();
         } else {
             mMediaPlayer.start();
         }
         /**
-         * {@link com.example.capture.frags.MusicControllerFragment#updateUI(Boolean)}
+         * {@link com.example.capture.frags.MusicControllerFragment#updateUI(Boolean)} (Boolean)}
          */
-        EventBus.getDefault().post(isPlaying());   // D/EventBus: No subscribers registered for event class java.lang.Boolean
+        /**
+         * {@link com.example.capture.frags.PlayerFragment#updateUI(Boolean)} (Boolean)}
+         */
+        EventBus.getDefault().post(isPlaying());
 
 // Widget 상태변경 ****
         sendBroadcast(new Intent(BroadcastActions.PLAY_STATE_CHANGED,   // action
