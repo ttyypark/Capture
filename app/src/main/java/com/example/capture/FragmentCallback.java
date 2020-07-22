@@ -1,6 +1,8 @@
 package com.example.capture;
 
 public interface FragmentCallback {
-    public void setPage(int pageNum) ;
+    void setPage(int pageNum) ;
+//    public void stopMusic();
+
 //    public void stopPlayer();
 }
