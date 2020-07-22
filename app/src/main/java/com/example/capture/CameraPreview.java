@@ -1,7 +1,5 @@
 package com.example.capture;
 
-import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -11,8 +9,6 @@ import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Environment;
-import android.provider.MediaStore;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Surface;
@@ -29,8 +25,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
-
-import static android.app.Activity.RESULT_OK;
 
 class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {
     private final String TAG = "CameraPreview";
@@ -245,7 +239,7 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {
 //            setResult(RESULT_OK, intent);
 //            finish();
 
-        CameraPhoto.imageView.setImageBitmap(bitmap);
+        CameraActivity.imageView.setImageBitmap(bitmap);
         Log.d("직접사진기", "사진찍힘");
 
         new SaveImageTask().execute(currentData);
@@ -269,7 +263,7 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {
 //                String fileName = String.format("%d.jpg", System.currentTimeMillis());
 //                File outputFile = new File(path, fileName);
 
-                outputFile = CameraPhoto.getInstance.createImageFile();
+                outputFile = CameraActivity.getInstance.createImageFile();
 
                 outStream = new FileOutputStream(outputFile);
 //                outStream = new FileOutputStream(MainActivity.currentPhotoPath);

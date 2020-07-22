@@ -1,48 +1,21 @@
 package com.example.capture;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
 
 import android.Manifest;
-import android.app.Activity;
-import android.content.ContentProvider;
-import android.content.ContentResolver;
-import android.content.ContentUris;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.hardware.Camera;
-import android.media.AudioAttributes;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.StrictMode;
-import android.provider.BaseColumns;
-import android.provider.MediaStore;
 import android.util.Log;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.gun0912.tedpermission.PermissionListener;
 import com.gun0912.tedpermission.TedPermission;
 
-import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 //import static android.os.Environment.getExternalStoragePublicDirectory;
 
@@ -125,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.camera_photo: // 사진찍기
-                Intent cameraIntent = new Intent(getApplicationContext(), CameraPhoto.class);
+                Intent cameraIntent = new Intent(getApplicationContext(), CameraActivity.class);
                 startActivity(cameraIntent);
                 break;
             case R.id.gallery: // 사진찍기
