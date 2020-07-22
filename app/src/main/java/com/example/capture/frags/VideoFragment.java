@@ -35,6 +35,8 @@ import com.example.capture.services.MusicService;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.util.Objects;
+
 import static android.media.ThumbnailUtils.createVideoThumbnail;
 
 public class VideoFragment extends Fragment {
@@ -73,10 +75,12 @@ public class VideoFragment extends Fragment {
 
 //========================================================
 //   cursor 로 데이터를 가져와서 처리
-        Cursor cursor = getActivity().getContentResolver()
+        Cursor cursor = requireActivity().getContentResolver()
                 .query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
                 null, null, null, null);
         recyclerView.setAdapter(new VideoRecyclerAdapter(getActivity(), cursor));
+
+//        Log.i(TAG, "비디오 수 : " + VideoRecyclerAdapter.getItemCount());
 
         // 추가
         GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), 3);
@@ -165,14 +169,13 @@ public class VideoFragment extends Fragment {
         private ImageView mImgAlbumArt;
         private TextView mTxtTitle;
         private TextView mSubTitle;
-        private int mPosition;
 
         public VideoViewHolder(View view) {
             super(view);
 
-            mImgAlbumArt = (ImageView) view.findViewById(R.id.imageView);
-            mTxtTitle = (TextView) view.findViewById(R.id.txt_title);
-            mSubTitle = (TextView) view.findViewById(R.id.txt_sub_title);
+            mImgAlbumArt = view.findViewById(R.id.imageView);
+            mTxtTitle = view.findViewById(R.id.txt_title);
+            mSubTitle = view.findViewById(R.id.txt_sub_title);
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -183,7 +186,6 @@ public class VideoFragment extends Fragment {
 
         public void setVideoItem(VideoItem item, int position) {
 //            mItem = item;
-            mPosition = position;
             mTxtTitle.setText(item.mDataPath);
             mSubTitle.setText(DateFormat.format("mm:ss", item.mDuration));
 //            mTxtDuration.setText(DateFormat.format("mm:ss", item.mDuration));

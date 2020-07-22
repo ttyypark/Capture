@@ -56,9 +56,9 @@ public class VideoPlayerFragment extends Fragment {
 
     @Subscribe
     public void playVideo(final Uri uri){
-        String path = "https://sites.google.com/site/ubiaccessmobile/sample_video.mp4";
-        videoView.setVideoPath(path);
-//        videoView.setVideoURI(uri);
+//        String path = "https://sites.google.com/site/ubiaccessmobile/sample_video.mp4";
+//        videoView.setVideoPath(path);
+        videoView.setVideoURI(uri);
         videoView.requestFocus();
 
         videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
