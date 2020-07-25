@@ -11,6 +11,7 @@ import android.media.Image;
 import android.media.MediaMetadataRetriever;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.BaseColumns;
 import android.provider.MediaStore;
@@ -27,6 +28,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
 import com.example.capture.FragmentCallback;
 import com.example.capture.R;
@@ -35,6 +37,9 @@ import com.example.capture.services.MusicService;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.Objects;
 
 import static android.media.ThumbnailUtils.createVideoThumbnail;
@@ -83,8 +88,10 @@ public class VideoFragment extends Fragment {
 //        Log.i(TAG, "비디오 수 : " + VideoRecyclerAdapter.getItemCount());
 
         // 추가
-        GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), 3);
-        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+//        GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), 3);
+//        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(
+                3, StaggeredGridLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(layoutManager);
 
 
@@ -122,7 +129,7 @@ public class VideoFragment extends Fragment {
             VideoItem videoItem = VideoItem.bindCursor(cursor);
             if (videoItem == null) return;
             viewHolder.setVideoItem(videoItem, cursor.getPosition());
-            Log.d(TAG, "Title:" + videoItem.mTitle + ", Artist:" + videoItem.mArtist);
+            Log.d(TAG, "Bind Title:" + videoItem.mTitle + ", 촬영날자:" + videoItem.mDate);
 
 //            //        MediaMetadataRetriever 를 이용하여 데이터 처리 ================
 //            final MediaMetadataRetriever retriever;
@@ -175,7 +182,7 @@ public class VideoFragment extends Fragment {
 
             mImgAlbumArt = view.findViewById(R.id.imageView);
             mTxtTitle = view.findViewById(R.id.txt_title);
-            mSubTitle = view.findViewById(R.id.txt_sub_title);
+//            mSubTitle = view.findViewById(R.id.txt_sub_title);
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -186,8 +193,10 @@ public class VideoFragment extends Fragment {
 
         public void setVideoItem(VideoItem item, int position) {
 //            mItem = item;
-            mTxtTitle.setText(item.mDataPath);
-            mSubTitle.setText(DateFormat.format("mm:ss", item.mDuration));
+
+            mTxtTitle.setText(item.mDate);
+//            mSubTitle.setText(DateFormat.format("mm:ss", item.mDuration));
+
 //            mTxtDuration.setText(DateFormat.format("mm:ss", item.mDuration));
 //            Uri albumArtUri = ContentUris.withAppendedId(artworkUri, item.mAlbumId);
 //            Glide.with(itemView.getContext()).load(albumArtUri).error(R.drawable.snow).into(mImgAlbumArt);
@@ -204,7 +213,7 @@ public class VideoFragment extends Fragment {
         public long mId; // 오디오 고유 ID
 //        public long mAlbumId; // 오디오 앨범아트 ID
         public String mTitle; // 타이틀 정보
-        public String mArtist; // 아티스트 정보
+        public String mDate; // 아티스트 정보
         public String mAlbum; // 앨범 정보
         public long mDuration; // 재생시간
         public String mDataPath; // 실제 데이터위치
@@ -217,11 +226,20 @@ public class VideoFragment extends Fragment {
             int column_index = cursor.getColumnIndexOrThrow(MediaStore.Video.Media.DATA);
             String pathId = cursor.getString(column_index);
             if(pathId == null) return null;
-            videoItem.mBitmap = ThumbnailUtils.createVideoThumbnail(pathId, MediaStore.Video.Thumbnails.MINI_KIND);
+            videoItem.mBitmap = createVideoThumbnail(pathId, MediaStore.Video.Thumbnails.MINI_KIND);
             //-------------------
             videoItem.mId = cursor.getLong(cursor.getColumnIndex(MediaStore.Video.VideoColumns._ID));
             videoItem.mTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Video.VideoColumns.TITLE));
-            videoItem.mArtist = cursor.getString(cursor.getColumnIndex(MediaStore.Video.VideoColumns.ARTIST));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                String Sdate = cursor.getString(cursor.getColumnIndex(MediaStore.Video.VideoColumns.DATE_TAKEN));
+                if( Sdate != null) {
+                    long lDate = Long.parseLong(Sdate);
+                    videoItem.mDate = new SimpleDateFormat("yyyyMMdd", Locale.KOREA).format(new Date(lDate));
+                } else {
+                    videoItem.mDate = videoItem.mTitle;
+                }
+
+            }
             videoItem.mAlbum = cursor.getString(cursor.getColumnIndex(MediaStore.Video.VideoColumns.ALBUM));
             videoItem.mDuration = cursor.getLong(cursor.getColumnIndex(MediaStore.Video.VideoColumns.SIZE));
 
@@ -229,7 +247,7 @@ public class VideoFragment extends Fragment {
             String[] pathArr = path.split("/");
             videoItem.mDataPath = pathArr[pathArr.length-1];
 
-            Log.d(TAG, "Title:" + videoItem.mTitle + ", Artist:" + videoItem.mArtist);
+            Log.d(TAG, "Title:" + videoItem.mTitle + ", Date:" + videoItem.mDate);
             return videoItem;
         }
 
@@ -239,7 +257,7 @@ public class VideoFragment extends Fragment {
 //            audioItem.mId = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.AudioColumns._ID));
 //            audioItem.mAlbumId = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.AudioColumns.ALBUM_ID));
             videoItem.mTitle = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-            videoItem.mArtist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+            videoItem.mDate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE);
             videoItem.mAlbum = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
             videoItem.mDuration = Long.parseLong(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
 //            String duration = retriever.extractMetadata((MediaMetadataRetriever.METADATA_KEY_DURATION));
