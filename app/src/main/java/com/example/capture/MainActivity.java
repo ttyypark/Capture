@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(cameraIntent);
                 break;
             case R.id.gallery: // 사진찍기
-                Intent galleryIntent = new Intent(getApplicationContext(), PhotosActivity.class);
+                Intent galleryIntent = new Intent(getApplicationContext(), PhotoGalleryActivity.class);
                 startActivity(galleryIntent);
                 break;
             case R.id.record: // Audio Record
