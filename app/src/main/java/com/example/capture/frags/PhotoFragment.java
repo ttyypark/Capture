@@ -28,9 +28,12 @@ import com.example.capture.FragmentCallback;
 import com.example.capture.PhotoAdapter;
 import com.example.capture.R;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.util.ArrayList;
 
 public class PhotoFragment extends Fragment {
+    FragmentCallback callback;
     private static final String TAG = "사진";
     private Context mContext;
 //    FragmentCallback callback;
@@ -42,11 +45,15 @@ public class PhotoFragment extends Fragment {
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
         mContext = context;
+        if (context instanceof FragmentCallback) {
+            callback = (FragmentCallback) context;
+        }
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
+        if(callback != null) callback = null;
     }
 
     @Nullable
@@ -64,21 +71,24 @@ public class PhotoFragment extends Fragment {
 
         RecyclerView recyclerView = view.findViewById(R.id.recycler_photo);
 
-//        //   cursor 로 데이터를 가져와서 Adapter 에 넣기
-//        Cursor cursor = getActivity().getContentResolver()
-//                .query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-//                        null, null, null, null);
-
         PhotoAdapter mPhotoAdapter = new PhotoAdapter(mContext, R.layout.photo_item);
 
-// ? item click
-////        mPhotoAdapter.setOnItemClickListener(new PhotoAdapter.onItemClickListener(){
-////            @Override
-////            public void onItemClicked(RecyclerView.ViewHolder holder, View view, int position) {
-////                PhotoAdapter.PhotoItem item = mPhotoAdapter.getItem(position);
-////                Toast.makeText(getContext(), "아이템 선택됨: " + position, Toast.LENGTH_SHORT).show();
-////            }
-////        });
+//       item click
+        mPhotoAdapter.setOnItemClickListener(new PhotoAdapter.onItemClickListener(){
+            @Override
+            public void onItemClicked(PhotoAdapter.PhotoItem item, View view1) {
+                Toast.makeText(getContext(), "아이템 선택됨: " + item.imgPath, Toast.LENGTH_SHORT).show();
+
+//              PhotoViewFragment 호출
+                //  EventBus로 PhotoViewFragment#playPhoto 사용
+                /**
+                 * 사진 보기
+                 * {@link com.example.capture.frags.PhotoViewFragment#playPhoto(PhotoAdapter.PhotoItem)}                  */
+                EventBus.getDefault().post(item);
+                if (callback != null) callback.setPage(1);
+
+            }
+        });
 
         recyclerView.setAdapter(mPhotoAdapter);
         Log.i(TAG, "사진 수 : " + mPhotoAdapter.getItemCount());

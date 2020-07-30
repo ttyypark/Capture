@@ -1,7 +1,6 @@
 package com.example.capture;
 
 import android.os.Bundle;
-import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -12,38 +11,46 @@ import androidx.fragment.app.FragmentPagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import com.example.capture.frags.PhotoFragment;
-import com.example.capture.frags.PhtoViewFragment;
-import com.google.android.material.tabs.TabLayout;
+import com.example.capture.frags.PhotoViewFragment;
 
-public class PhotosActivity extends AppCompatActivity {
+public class PhotosActivity extends AppCompatActivity
+        implements FragmentCallback {
     private PhotoFragment mPhotoFragment;
-    private PhtoViewFragment mPhotoViewFragment;
+    private PhotoViewFragment mPhotoViewFragment;
+    private ViewPager viewPager;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_photo);
 
-        TabLayout tabLayout = findViewById(R.id.tab);
-        ViewPager viewPager = findViewById(R.id.view_pager);
+//        TabLayout tabLayout = findViewById(R.id.tab);
+        viewPager = findViewById(R.id.view_pager);
 
         // 포토
         mPhotoFragment = new PhotoFragment();
 
         // 뷰어
-        mPhotoViewFragment = new PhtoViewFragment();
+        mPhotoViewFragment = new PhotoViewFragment();
 
-        PhtoPagerAdapter adapter = new PhtoPagerAdapter(getSupportFragmentManager());
+        PhotoPagerAdapter adapter = new PhotoPagerAdapter(getSupportFragmentManager());
         viewPager.setAdapter(adapter);
 
-        tabLayout.setupWithViewPager(viewPager);
+//        tabLayout.setupWithViewPager(viewPager);
 
+        viewPager.setCurrentItem(0);
 
     }
 
-    private class PhtoPagerAdapter extends FragmentPagerAdapter {
+    @Override
+    public void setPage(int pageNum) {
+        viewPager.setCurrentItem(pageNum);
+    }
 
-        public PhtoPagerAdapter(@NonNull FragmentManager fm) {
+
+    private class PhotoPagerAdapter extends FragmentPagerAdapter {
+
+        public PhotoPagerAdapter(@NonNull FragmentManager fm) {
             super(fm);
         }
 
@@ -75,10 +82,13 @@ public class PhotosActivity extends AppCompatActivity {
             }
             return null;
         }
+// *************************************************************************************
+//  recyclerView 의 PhotoFragment 가 안 보이는 이유, onBindViewHolder 가 안되는 이유 !!!!!!
+//  왜 이런 Override 가 있었지?
+//        @Override
+//        public boolean isViewFromObject(@NonNull View view, @NonNull Object object) {
+//            return false;
+//        }
 
-        @Override
-        public boolean isViewFromObject(@NonNull View view, @NonNull Object object) {
-            return false;
-        }
     }
 }
