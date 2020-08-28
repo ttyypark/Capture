@@ -39,7 +39,7 @@ import org.greenrobot.eventbus.Subscribe;
 
 import java.util.Locale;
 
-public class PlayerFragment extends Fragment implements View.OnClickListener {
+public class MusicPlayerFragment extends Fragment implements View.OnClickListener {
     private MusicService mService;
     private boolean mBound = false;
 
@@ -52,7 +52,7 @@ public class PlayerFragment extends Fragment implements View.OnClickListener {
     private Button mPlayLoop, mStopPlayer;
     private String TAG = "음악 플레이어";
 
-    public PlayerFragment() {
+    public MusicPlayerFragment() {
     }
 
 //    @Override
@@ -161,8 +161,8 @@ public class PlayerFragment extends Fragment implements View.OnClickListener {
     public void updateUI(Boolean playing) {
         if (playing) {
             if(mService == null) return;  // *** player가 service에 연결되기 전
-            MediaMetadataRetriever retriever = mService.getMetaDataRetriever();
-            if (retriever != null) {
+//            MediaMetadataRetriever retriever = mService.getMetaDataRetriever();
+//            if (retriever != null) {
                 // ms값
                 int longDuration = mService.getMediaPlayer().getDuration();
 
@@ -174,7 +174,7 @@ public class PlayerFragment extends Fragment implements View.OnClickListener {
                 mSeekBar.setMax(longDuration);
 
                 // 오디오 앨범 자켓 이미지
-                Bitmap bitmap = mService.getAudioItem().mBitmap;
+                Bitmap bitmap = mService.mAudioItem.mBitmap;
 
 //                byte albumImage[] = retriever.getEmbeddedPicture();
                 if (null != bitmap) {
@@ -193,7 +193,7 @@ public class PlayerFragment extends Fragment implements View.OnClickListener {
                 } else {
                     mPlayLoop.setText("반복재생");
                 }
-            }
+//            }
         }
         updateTimer(playing);
     }

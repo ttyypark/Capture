@@ -60,13 +60,13 @@ public class MusicControllerFragment extends Fragment implements View.OnClickLis
 
     }
 
-    private void updateMetaData(MediaMetadataRetriever retriever){
-        if(retriever != null){
-//            String title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-//            String artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-            String title = mService.getAudioItem().mTitle;
-            String artist = mService.getAudioItem().mArtist;
-            Bitmap bitmap = mService.getAudioItem().mBitmap;
+    private void updateMetaData(){
+            String title = mService.mAudioItem.mTitle;
+            String artist = mService.mAudioItem.mArtist;
+            Bitmap bitmap = mService.mAudioItem.mBitmap;
+//            String title = mService.getAudioItem().mTitle;
+//            String artist = mService.getAudioItem().mArtist;
+//            Bitmap bitmap = mService.getAudioItem().mBitmap;
 
             if(title == null) title = "UnKnown";
             if(artist == null) artist = "UnKnown";
@@ -82,7 +82,6 @@ public class MusicControllerFragment extends Fragment implements View.OnClickLis
 // **** Glide 사용법
             mTitleTextView.setText(title);
             mArtistTextView.setText(artist);
-        }
     }
 
   // Service 이용하는 방법 ===============================
@@ -90,7 +89,7 @@ public class MusicControllerFragment extends Fragment implements View.OnClickLis
     public void updateUI(Boolean isPlaying) {       // boolean 안됨
         if(mService == null) return;  // *** player가 service에 연결되기 전
         mPlayButton.setText(isPlaying ? "중지" : "재생");
-        updateMetaData(mService.getMetaDataRetriever());
+        updateMetaData();
 
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 //            mService.startForegroundService();
@@ -141,31 +140,23 @@ public class MusicControllerFragment extends Fragment implements View.OnClickLis
 
     @Override
     public void onClick(View v) {
-        // Service 사용
-        Intent intent = new Intent(getActivity(), MusicService.class);
+//        // Service 사용
+//        Intent intent = new Intent(getActivity(), MusicService.class);
+//        intent.setAction(MusicService.ACTION_RESUME);
+//        getActivity().startService(intent);
 
         switch (v.getId()) {
             case R.id.play_button:
-
-//                // EventBus 사용
-//                /**
-//                 * {@link com.example.capture.MusicPlayerActivity#clickPlayButton(View)}
-//                 */
-//                EventBus.getDefault().post(v);
-
-                // Service 사용
-                intent.setAction(MusicService.ACTION_RESUME);
+                MusicApplication.getInstance().getServiceInterface().clickResumeButton();
                 break;
             case R.id.prev_music_button:
-                intent.setAction(MusicService.ACTION_PREV);
+                MusicApplication.getInstance().getServiceInterface().prevMusic();
                 break;
             case R.id.next_music_button:
-                intent.setAction(MusicService.ACTION_NEXT);
+                MusicApplication.getInstance().getServiceInterface().nextMusic();
                 break;
         }
 
-        // Service 사용
-        getActivity().startService(intent);
     }
 
     // Service 사용

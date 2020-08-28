@@ -6,33 +6,22 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.loader.app.LoaderManager;
-import androidx.loader.content.CursorLoader;
-import androidx.loader.content.Loader;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager.widget.ViewPager;
 
-import android.database.Cursor;
 import android.media.AudioAttributes;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Log;
-import android.view.View;
 
 import com.example.capture.frags.ListViewFragment;
-import com.example.capture.frags.PlayerFragment;
-import com.example.capture.frags.SongFragment;
-import com.example.capture.services.MusicService;
+import com.example.capture.frags.MusicPlayerFragment;
+import com.example.capture.frags.MusicFragment;
 import com.google.android.material.tabs.TabLayout;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,9 +30,9 @@ import java.util.List;
 //
 public class MusicPlayerActivity extends AppCompatActivity implements FragmentCallback {
     private static final int LOADER_ID = 10101;
-    private PlayerFragment mPlayerFragment;
+    private MusicPlayerFragment mMusicPlayerFragment;
     private ListViewFragment mListViewFragment;
-    private SongFragment mSongFragment;
+    private MusicFragment mMusicFragment;
     private static final String TAG = "음악플레이어 Activity";
 
 //    public static ArrayList<Uri> mSongList; // uri로 모든 음악정보 추출 가능?
@@ -67,7 +56,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements FragmentCa
 //        mSongList = new ArrayList<>();
 
         // 플레이어
-        mPlayerFragment = new PlayerFragment();
+        mMusicPlayerFragment = new MusicPlayerFragment();
 
         // 아티스트
         List<String> artistList = new ArrayList<>();
@@ -77,7 +66,7 @@ public class MusicPlayerActivity extends AppCompatActivity implements FragmentCa
         mListViewFragment = ListViewFragment.newInstance(artistList);
 
         // 노래
-        mSongFragment = new SongFragment();
+        mMusicFragment = new MusicFragment();
 
         MusicPlayerPagerAdapter adapter = new MusicPlayerPagerAdapter(getSupportFragmentManager());
         viewPager.setAdapter(adapter);
@@ -230,9 +219,9 @@ public class MusicPlayerActivity extends AppCompatActivity implements FragmentCa
         public Fragment getItem(int position) {
             switch (position) {
                 case 0:
-                    return mSongFragment;
+                    return mMusicFragment;
                 case 1:
-                    return mPlayerFragment;
+                    return mMusicPlayerFragment;
                 case 2:
                     return mListViewFragment;
             }

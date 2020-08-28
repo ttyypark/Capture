@@ -1,47 +1,29 @@
 package com.example.capture.services;
 
-import android.app.ActivityManager;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.Icon;
+import android.database.Cursor;
 import android.media.AudioAttributes;
-import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
-import android.net.ProxyInfo;
 import android.net.Uri;
-import android.net.sip.SipSession;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.provider.MediaStore;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-import androidx.core.app.ActivityCompat;
-
-import android.widget.RemoteViews;
 
 import com.example.capture.AudioAdapter;
-import com.example.capture.CaptureWidget;
 import com.example.capture.CaptureWidgetProvider;
 import com.example.capture.Foreground;
-import com.example.capture.FragmentCallback;
-import com.example.capture.MainActivity;
 import com.example.capture.MusicPlayerActivity;
 import com.example.capture.NotificationPlayer;
-import com.example.capture.R;
 import com.example.capture.frags.MusicControllerFragment;
-import com.example.capture.frags.PlayerFragment;
-import com.example.capture.frags.SongFragment;
+import com.example.capture.frags.MusicPlayerFragment;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -64,17 +46,17 @@ public class MusicService extends Service {
     public static final String TAG = "MusicService";
 
     private boolean isPrepared;
-    private Context mContext;
     private ArrayList<Uri> mSongList;
+    private ArrayList<Long> mSongID;
+    public AudioAdapter.AudioItem mAudioItem;
     private Uri mCurrentUri;
-    private int mIndex = 0;
+    private int mIndex = 0;   // mCurrentPosition;
 
     private final IBinder mBinder = new LocalBinder();
     public MediaPlayer mMediaPlayer;
     private MediaMetadataRetriever mRetriever;
     private NotificationPlayer mNotificationPlayer;
-    private AudioAdapter mAudioAdapter;
-
+    private Context mContext;
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
@@ -94,15 +76,38 @@ public class MusicService extends Service {
         }
     }
 
+    public class LocalBinder extends Binder{
+        public MusicService getService(){
+            // Return this instance of LocalService so clients can call public methods
+            return MusicService.this;
+        }
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        Log.d(TAG, "Bind 시작됨");
+        return mBinder;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        Log.d(TAG, "Bind 끝남");
+        return super.onUnbind(intent);
+    }
+
+
     @Override
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "********************서비스 시작됨, MP 생성");
 
         mContext = getApplicationContext();
+        AudioAdapter mAudioAdapter = new AudioAdapter(mContext, null);    // mSongList 설정
 
-        mAudioAdapter = new AudioAdapter(mContext);    // mSongList 설정
         mSongList = mAudioAdapter.mSongList;
+        mSongID = mAudioAdapter.mSongID;
+        mAudioItem = new AudioAdapter.AudioItem();
 //-----------------------------------------------------------
         mNotificationPlayer = new NotificationPlayer(this);  //****시작, 생성
 
@@ -115,12 +120,14 @@ public class MusicService extends Service {
             public void onPrepared(MediaPlayer mp) {
                 isPrepared = true;
                 mp.start();
-                mIndex = mSongList.indexOf(mCurrentUri);
+                mIndex = mSongList.indexOf(mCurrentUri);  // 중복?
+                queryAudioItem(mIndex);
+
                 /**
                  * {@link MusicControllerFragment#updateUI(Boolean)}
                  */
                 /**
-                 * {@link PlayerFragment#updateUI(Boolean)}
+                 * {@link MusicPlayerFragment#updateUI(Boolean)}
                  */
                 EventBus.getDefault().post(isPlaying());    // fragment쪽 UI는  eventBus로
                 updateNotificationPlayer();                 // Notification쪽
@@ -255,6 +262,10 @@ public class MusicService extends Service {
         return mMediaPlayer;
     }
 
+    public MediaMetadataRetriever getMetaDataRetriever() {
+        return mRetriever;
+    }
+
     public void setmSongList(ArrayList<Uri> songList){
         if(!mSongList.equals(songList)){
             mSongList.clear();
@@ -262,12 +273,11 @@ public class MusicService extends Service {
         }
     }
 
-    public void playMusic(final Uri uri){
-        mCurrentUri = uri;
+    public void prepare(Uri uri){
         try {
-            // 현재 재생중인 정보
-            mRetriever = new MediaMetadataRetriever();
-            mRetriever.setDataSource(this, uri);
+//            // 현재 재생중인 정보
+//            mRetriever = new MediaMetadataRetriever();
+//            mRetriever.setDataSource(this, uri);
 
             if (mMediaPlayer != null){
                 mMediaPlayer.stop();
@@ -291,9 +301,32 @@ public class MusicService extends Service {
         }
     }
 
-    public MediaMetadataRetriever getMetaDataRetriever() {
-        return mRetriever;
+    public void stop(){
+        mMediaPlayer.stop();
+        mMediaPlayer.reset();
     }
+
+    public void playMusic(final Uri uri){
+        mCurrentUri = uri;
+//        mIndex = mSongList.indexOf(mCurrentUri);
+//        queryAudioItem(mIndex);
+        stop();
+        prepare(uri);
+    }
+
+//    public void play(){
+//        if(isPrepared) {
+//            mMediaPlayer.start();
+//            sendBroadcast(new Intent(BroadcastActions.PLAY_STATE_CHANGED)); // Widget 재생상태 변경
+//        }
+//    }
+//
+//    public void pause(){
+//        if(isPrepared){
+//            mMediaPlayer.pause();
+//            sendBroadcast(new Intent(BroadcastActions.PLAY_STATE_CHANGED)); // Widget 재생상태 변경
+//        }
+//    }
 
     public void nextMusic(){
         mIndex++;
@@ -318,11 +351,12 @@ public class MusicService extends Service {
         } else {
             mMediaPlayer.start();
         }
+// Fragment 상태변경 ****
         /**
-         * {@link com.example.capture.frags.MusicControllerFragment#updateUI(Boolean)} (Boolean)}
-         */
+          * {@link com.example.capture.frags.MusicControllerFragment#updateUI(Boolean)} (Boolean)}
+          */
         /**
-         * {@link com.example.capture.frags.PlayerFragment#updateUI(Boolean)} (Boolean)}
+         * {@link MusicPlayerFragment#updateUI(Boolean)} (Boolean)}
          */
         EventBus.getDefault().post(isPlaying());
 
@@ -332,6 +366,7 @@ public class MusicService extends Service {
                 getApplicationContext(),                                // context
                 CaptureWidgetProvider.class));                          //class
 
+// Notification 상태변경 ****
 //            // foreground service
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {   //**************
 //            startForegroundService();
@@ -347,35 +382,41 @@ public class MusicService extends Service {
     }
 
 
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        Log.d(TAG, "Bind 시작됨");
-        return mBinder;
-    }
 
-    @Override
-    public boolean onUnbind(Intent intent) {
-        Log.d(TAG, "Bind 끝남");
-        return super.onUnbind(intent);
-    }
+    // 사용 안함
+//    public AudioAdapter.AudioItem getAudioItem(){
+////---------------------------------- AudioItem 만들기 from mCurrentUri
+//        if (mCurrentUri == null) return null;
+//        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+//        retriever.setDataSource(getApplicationContext(), mCurrentUri);
+//        final AudioAdapter.AudioItem audioItem = AudioAdapter.AudioItem.bindRetriever(retriever);
+//        return audioItem;
+//    }
 
-
-    public class LocalBinder extends Binder{
-        public MusicService getService(){
-            // Return this instance of LocalService so clients can call public methods
-            return MusicService.this;
+    public void queryAudioItem(int position) {
+        long audioId = mSongID.get(position);
+        Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        String[] projection = new String[]{
+                MediaStore.Audio.Media._ID,
+                MediaStore.Audio.Media.TITLE,
+                MediaStore.Audio.Media.ARTIST,
+                MediaStore.Audio.Media.ALBUM,
+                MediaStore.Audio.Media.ALBUM_ID,
+                MediaStore.Audio.Media.DURATION,
+                MediaStore.Audio.Media.DATA
+        };
+        String selection = MediaStore.Audio.Media._ID + " = ?";
+        String[] selectionArgs = {String.valueOf(audioId)};
+        Cursor cursor = getContentResolver().query(uri, projection, selection, selectionArgs, null);
+        if (cursor != null) {
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                mAudioItem = AudioAdapter.AudioItem.bindCursor(mContext, cursor);
+            }
+            cursor.close();
         }
     }
 
-    public AudioAdapter.AudioItem getAudioItem(){
-//---------------------------------- AudioItem 만들기
-        if (mCurrentUri == null) return null;
-        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-        retriever.setDataSource(getApplicationContext(), mCurrentUri);
-        AudioAdapter.AudioItem audioItem = AudioAdapter.AudioItem.bindRetriever(retriever);
-        return audioItem;
-    }
 
     public static class BroadcastActions {
         public final static String PREPARED = "PREPARED";

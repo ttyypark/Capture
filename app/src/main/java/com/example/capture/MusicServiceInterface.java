@@ -8,7 +8,6 @@ import android.net.Uri;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.example.capture.frags.SongFragment;
 import com.example.capture.services.MusicService;
 
 import java.util.ArrayList;
@@ -49,9 +48,48 @@ public class MusicServiceInterface {
         return false;
     }
 
-    public AudioAdapter.AudioItem getAudioItem() {
+    public void play(Uri uri){
         if (mService != null) {
-            return mService.getAudioItem();
+            mService.playMusic(uri);
+        }
+    }
+
+    public void nextMusic(){
+        if (mService != null) {
+            mService.nextMusic();
+        }
+    }
+
+    public void prevMusic(){
+        if (mService != null) {
+            mService.prevMusic();
+        }
+    }
+
+    public void clickResumeButton(){
+        if (mService != null) {
+            mService.clickResumeButton();
+        }
+    }
+
+
+    // 사용 안함
+//    public AudioAdapter.AudioItem getAudioItem() {
+//        if (mService != null) {
+//            return mService.getAudioItem();
+//        }
+//        return null;
+//    }
+
+    public void queryAudioItem(int position) {
+        if (mService != null) {
+            mService.queryAudioItem(position);
+        }
+    }
+
+    public AudioAdapter.AudioItem mAudioItem() {
+        if (mService != null) {
+            return mService.mAudioItem;
         }
         return null;
     }

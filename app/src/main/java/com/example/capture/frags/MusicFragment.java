@@ -1,35 +1,23 @@
 package com.example.capture.frags;
 
-import android.app.Activity;
 import android.content.ComponentName;
-import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.res.Resources;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.media.Image;
-import android.media.MediaMetadataRetriever;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.provider.BaseColumns;
 import android.provider.MediaStore;
-import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.SimpleCursorAdapter;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.CursorLoader;
 import androidx.loader.content.Loader;
@@ -42,29 +30,26 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.capture.AudioAdapter;
 import com.example.capture.FragmentCallback;
 import com.example.capture.MusicApplication;
-import com.example.capture.MusicPlayerActivity;
 import com.example.capture.R;
-import com.example.capture.adapters.CursorRecyclerViewAdapter;
 import com.example.capture.services.MusicService;
 
 import org.greenrobot.eventbus.EventBus;
 
-import java.util.ArrayList;
-
-public class SongFragment extends Fragment {
+public class MusicFragment extends Fragment {
     FragmentCallback callback;
     private boolean mBound = false;
     private Context mContext;
     private AudioAdapter mAdapter;
+    private final static int LOADER_ID = 0x001;
 
 //    public static SongRecyclerAdapter mAdapter;   // **
     private MusicService mService;
     private static final String TAG = "SongFragment";
 
-    public SongFragment() {
+    public MusicFragment() {
     }
 
-    public SongFragment(int contentLayoutId) {
+    public MusicFragment(int contentLayoutId) {
         super(contentLayoutId);
     }
 
@@ -118,22 +103,34 @@ public class SongFragment extends Fragment {
         RecyclerView recyclerView = view.findViewById(R.id.recycler_view);
 
 //========================================================
-        mAdapter = new AudioAdapter(mContext);
+//        getAudioListFromMediaDatabase();
+        String selection = MediaStore.Audio.Media.IS_MUSIC + " = 1";
+        String sortOrder = MediaStore.Audio.Media.TITLE + " COLLATE LOCALIZED ASC";
+        Cursor cursor = requireActivity().getContentResolver()
+                .query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                        null, selection, null,
+                        null);
+
+        mAdapter = new AudioAdapter(getContext(), cursor);
+
+
+        //       item click interface
         mAdapter.setOnItemClickListener(new AudioAdapter.onItemClickListener() {
             @Override
             public void onItemClicked(Uri mUri) {
                 //**********************
                 Log.d("AudioAdapter", "item 클릭 Uri : " + mUri);
 
-                //  startService로 MusicService#playMusic 사용 ------------------대체
-                /**
-                 * 음악 틀기
-                 * {@link com.example.capture.services.MusicService#playMusic(Uri)}
-                 */
-                Intent intent = new Intent(mContext, MusicService.class);
-                intent.setAction(MusicService.ACTION_PLAY);
-                intent.putExtra("uri", mUri);
-                mContext.startService(intent);
+//                //  startService로 MusicService#playMusic 사용 ------------------대체
+//                /**
+//                 * 음악 틀기
+//                 * {@link com.example.capture.services.MusicService#playMusic(Uri)}
+//                 */
+//                Intent intent = new Intent(mContext, MusicService.class);
+//                intent.setAction(MusicService.ACTION_PLAY);
+//                intent.putExtra("uri", mUri);
+//                mContext.startService(intent);
+                MusicApplication.getInstance().getServiceInterface().play(mUri);
 
                 // fragment 옮기기 -> player fragment
                 /**
@@ -149,17 +146,10 @@ public class SongFragment extends Fragment {
             }
         });
 
-//        MusicPlayerActivity.mSongList = mAdapter.mSongList;  // ?
-//        makeSongList();
         Log.d("노래개수 : " , String.valueOf(mAdapter.mSongList.size()));
 
-// onStart 와 중복?
-//        // MusicPlayerActivity.mSongList 만든 후 서비스 시작
-//        Intent intent = new Intent(getActivity(), MusicService.class);
-//        getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-
         recyclerView.setAdapter(mAdapter);
-//        recyclerView.setAdapter(new AudioAdapter(getActivity(), MusicPlayerActivity.mSongList));
+
 ////========================================================
 ////   cursor 로 데이터를 가져와서 처리
 //        Cursor cursor = getActivity().getContentResolver()
@@ -179,9 +169,6 @@ public class SongFragment extends Fragment {
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(layoutManager);
     }
-
-
-
 
 ////====================================================================
 ////  사용 안함  from
@@ -275,13 +262,6 @@ public class SongFragment extends Fragment {
 //            });
 //        }
 //
-////   필요 없음?
-////        private class SongClickEvent {
-////            public Uri uri;
-////            public SongClickEvent(Uri uri) {
-////                this.uri = uri;
-////            }
-////        }
 //    }
 ////====================================================================
 ////  사용 안함  to
@@ -498,47 +478,47 @@ public class SongFragment extends Fragment {
 //        }
 //    }  // AudioHolder
 //
-////    // 사용 안함
-////    private void getAudioListFromMediaDatabase() {
-//////   Loader를 이용하여  전체 cursor data를 얻어 adapter에 연결
-//////        getSupportLoaderManager().initLoader(LOADER_ID, null, new LoaderManager.LoaderCallbacks<Cursor>() {
-////        getLoaderManager().initLoader(101, null, new LoaderManager.LoaderCallbacks<Cursor>() {
-////            @Override
-////            public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-////                Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-////                String[] projection = new String[]{
-////                        MediaStore.Audio.Media._ID,
-////                        MediaStore.Audio.Media.TITLE,
-////                        MediaStore.Audio.Media.ARTIST,
-////                        MediaStore.Audio.Media.ALBUM,
-////                        MediaStore.Audio.Media.ALBUM_ID,
-////                        MediaStore.Audio.Media.DURATION,
-////                        MediaStore.Audio.Media.DATA
-////                };
-////                String selection = MediaStore.Audio.Media.IS_MUSIC + " = 1";
-////                String sortOrder = MediaStore.Audio.Media.TITLE + " COLLATE LOCALIZED ASC";
-//////                return new CursorLoader(getApplicationContext(), uri, projection, selection, null, sortOrder);
-////                return new CursorLoader(getContext(), uri, projection, selection, null, sortOrder);
-////            }
-////
-////            @Override
-////            public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-////                if (data != null && data.getCount() > 0) {
-////                    while (data.moveToNext()) {
-////                        Log.d(TAG, "Title:" + data.getString(data.getColumnIndex(MediaStore.Audio.Media.TITLE)));
-////                    }
-////                }
-////
-//////                mAdapter.swapCursor(data);
-////                SongFragment.mAdapter.swapCursor(data);
-////            }
-////
-////            @Override
-////            public void onLoaderReset(Loader<Cursor> loader) {
-////                SongFragment.mAdapter.swapCursor(null);
-////            }
-////        });
-////    }
+//    // 사용 안함
+    private void getAudioListFromMediaDatabase() {
+//   Loader를 이용하여  전체 cursor data를 얻어 adapter에 연결
+        LoaderManager.getInstance(this).initLoader(LOADER_ID, null, new LoaderManager.LoaderCallbacks<Cursor>() {
+//        getLoaderManager().initLoader(101, null, new LoaderManager.LoaderCallbacks<Cursor>() {
+            @NonNull
+            @Override
+            public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+                Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+                String[] projection = new String[]{
+                        MediaStore.Audio.Media._ID,
+                        MediaStore.Audio.Media.TITLE,
+                        MediaStore.Audio.Media.ARTIST,
+                        MediaStore.Audio.Media.ALBUM,
+                        MediaStore.Audio.Media.ALBUM_ID,
+                        MediaStore.Audio.Media.DURATION,
+                        MediaStore.Audio.Media.DATA
+                };
+                String selection = MediaStore.Audio.Media.IS_MUSIC + " = 1";
+                String sortOrder = MediaStore.Audio.Media.TITLE + " COLLATE LOCALIZED ASC";
+//                return new CursorLoader(getApplicationContext(), uri, projection, selection, null, sortOrder);
+                return new CursorLoader(getContext(), uri, projection, selection, null, sortOrder);
+            }
+
+            @Override
+            public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+                if (data != null && data.getCount() > 0) {
+                    while (data.moveToNext()) {
+                        Log.d(TAG, "Title:" + data.getString(data.getColumnIndex(MediaStore.Audio.Media.TITLE)));
+                    }
+                }
+
+                mAdapter.swapCursor(data);
+            }
+
+            @Override
+            public void onLoaderReset(Loader<Cursor> loader) {
+                mAdapter.swapCursor(null);
+            }
+        });
+    }
 
     private ServiceConnection mConnection = new ServiceConnection() {
 
@@ -554,7 +534,7 @@ public class SongFragment extends Fragment {
              * {@link MusicControllerFragment#updateUI(Boolean)}
              */
             /**
-             * {@link PlayerFragment#updateUI(Boolean)}
+             * {@link MusicPlayerFragment#updateUI(Boolean)}
              */
             EventBus.getDefault().post(mService.isPlaying());
         }
@@ -564,27 +544,5 @@ public class SongFragment extends Fragment {
             mBound = false;
         }
     };
-
-//    public void makeSongList(){
-//        ArrayList<Uri> mSongList = new ArrayList<>();
-//        String selection = MediaStore.Audio.Media.IS_MUSIC + " = 1";
-//        String sortOrder = MediaStore.Audio.Media.TITLE + " COLLATE LOCALIZED ASC";
-//
-//        Cursor cursor = getActivity().getContentResolver().query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-//                null,
-//                selection,
-//                null,
-//                null);
-////        sortOrder);
-//        if (cursor != null) {
-//            while (cursor.moveToNext()) {
-//                Uri uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, cursor.getLong(
-//                        cursor.getColumnIndexOrThrow(BaseColumns._ID)));
-//                mSongList.add(uri);
-//                Log.d(TAG, "Title:" + cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)));
-//            }
-//            MusicPlayerActivity.mSongList = mSongList;
-//        }
-//    }
 
 }
