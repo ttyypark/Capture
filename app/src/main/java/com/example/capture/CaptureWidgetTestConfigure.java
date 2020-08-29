@@ -10,17 +10,17 @@ import android.view.View;
 import android.widget.EditText;
 
 /**
- * The configuration screen for the {@link CaptureWidget CaptureWidget} AppWidget.
+ * The configuration screen for the {@link CaptureWidgetTest CaptureWidget} AppWidget.
  */
-public class CaptureWidgetConfigureActivity extends Activity {
+public class CaptureWidgetTestConfigure extends Activity {
 
-    private static final String PREFS_NAME = "com.example.capture.CaptureWidget";
+    private static final String PREFS_NAME = "com.example.capture.CaptureWidgetTest";
     private static final String PREF_PREFIX_KEY = "appwidget_";
     int mAppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
     EditText mAppWidgetText;
     View.OnClickListener mOnClickListener = new View.OnClickListener() {
         public void onClick(View v) {
-            final Context context = CaptureWidgetConfigureActivity.this;
+            final Context context = CaptureWidgetTestConfigure.this;
 
             // When the button is clicked, store the string locally
             String widgetText = mAppWidgetText.getText().toString();
@@ -28,7 +28,7 @@ public class CaptureWidgetConfigureActivity extends Activity {
 
             // It is the responsibility of the configuration activity to update the app widget
             AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-            CaptureWidget.updateAppWidget(context, appWidgetManager, mAppWidgetId);
+            CaptureWidgetTest.updateAppWidget(context, appWidgetManager, mAppWidgetId);
 
             // Make sure we pass back the original appWidgetId
             Intent resultValue = new Intent();
@@ -38,7 +38,7 @@ public class CaptureWidgetConfigureActivity extends Activity {
         }
     };
 
-    public CaptureWidgetConfigureActivity() {
+    public CaptureWidgetTestConfigure() {
         super();
     }
 
@@ -75,7 +75,7 @@ public class CaptureWidgetConfigureActivity extends Activity {
         // out of the widget placement if the user presses the back button.
         setResult(RESULT_CANCELED);
 
-        setContentView(R.layout.capture_widget_configure);
+        setContentView(R.layout.capture_widget_test_configure);
         mAppWidgetText = (EditText) findViewById(R.id.appwidget_text);
         findViewById(R.id.add_button).setOnClickListener(mOnClickListener);
 
@@ -93,7 +93,7 @@ public class CaptureWidgetConfigureActivity extends Activity {
             return;
         }
 
-        mAppWidgetText.setText(loadTitlePref(CaptureWidgetConfigureActivity.this, mAppWidgetId));
+        mAppWidgetText.setText(loadTitlePref(CaptureWidgetTestConfigure.this, mAppWidgetId));
     }
 }
 

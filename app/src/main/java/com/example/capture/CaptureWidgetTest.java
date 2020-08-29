@@ -1,5 +1,6 @@
 package com.example.capture;
 
+import android.annotation.SuppressLint;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
@@ -25,9 +26,9 @@ import java.util.Random;
 
 /**
  * Implementation of App Widget functionality.
- * App Widget Configuration implemented in {@link CaptureWidgetConfigureActivity CaptureWidgetConfigureActivity}
+ * App Widget Configuration implemented in {@link CaptureWidgetTestConfigure CaptureWidgetConfigureActivity}
  */
-public class CaptureWidget extends AppWidgetProvider {
+public class CaptureWidgetTest extends AppWidgetProvider {
     private static final String ACTION_BUTTON1 = "BUTTON1";
     private static final String ACTION_BUTTON3 = "BUTTON3";
     private static final String TAG = "위젯";
@@ -38,9 +39,9 @@ public class CaptureWidget extends AppWidgetProvider {
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
 
-        CharSequence widgetText = CaptureWidgetConfigureActivity.loadTitlePref(context, appWidgetId);
+        CharSequence widgetText = CaptureWidgetTestConfigure.loadTitlePref(context, appWidgetId);
         // Construct the RemoteViews object
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.capture_widget);
+        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.capture_widget_test);
 
         String time = getDate("time");
 //        String day = getDate("day");
@@ -62,29 +63,27 @@ public class CaptureWidget extends AppWidgetProvider {
         views.setImageViewResource(R.id.imagePhotoView, R.drawable.snow);
 
 
-        //버튼1 클릭 : 클릭 성공 메세지 출력!
-//        Intent intent1 = new Intent(ACTION_BUTTON1);
-        Intent intent1 = new Intent(context, CaptureWidget.class); // Broadcast를 받을 class 지정 필요
+        //버튼1 클릭 : 랜덤문자
+        Intent intent1 = new Intent(context, CaptureWidgetTest.class); // Broadcast를 받을 class 지정 필요
         intent1.setAction(ACTION_BUTTON1);
         intent1.putExtra("viewID", R.id.button1);
-//        PendingIntent pendingIntent1 = PendingIntent.getBroadcast(context, 0, intent1, PendingIntent.FLAG_CANCEL_CURRENT);
-        PendingIntent pendingIntent1 = PendingIntent.getBroadcast(context, 0, intent1, PendingIntent.FLAG_UPDATE_CURRENT);
-        views.setOnClickPendingIntent(R.id.button1, pendingIntent1);
-
         //버튼2 클릭 : 클릭하면 웹브라우저를 열어서 지정된 사이트를 보내 준다.
         Intent intent2 = new Intent(Intent.ACTION_VIEW, Uri.parse("http://google.com"));
-        PendingIntent pendingIntent2 = PendingIntent.getActivity(context, 0, intent2, 0);
-        views.setOnClickPendingIntent(R.id.button2, pendingIntent2);
-
         //버튼3 클릭 : 이미지뷰에 비트맵 이미지를 교체해준다.
-        Intent intent3 = new Intent(context, CaptureWidget.class); // Broadcast를 받을 class 지정 필요
+        Intent intent3 = new Intent(context, CaptureWidgetTest.class); // Broadcast를 받을 class 지정 필요
         intent3.setAction(ACTION_BUTTON3);
+
+        PendingIntent pendingIntent1 = PendingIntent.getBroadcast(context, 0, intent1, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent pendingIntent2 = PendingIntent.getActivity(context, 0, intent2, 0);
         PendingIntent pendingIntent3 = PendingIntent.getBroadcast(context, 0, intent3, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        views.setOnClickPendingIntent(R.id.button1, pendingIntent1);
+        views.setOnClickPendingIntent(R.id.button2, pendingIntent2);
         views.setOnClickPendingIntent(R.id.button3, pendingIntent3);
 
         // Instruct the widget manager to update the widget
         appWidgetManager.updateAppWidget(appWidgetId, views);
-        Log.d(TAG, "Update widget ID: " + String.valueOf(appWidgetId));
+        Log.d(TAG, "Update widget ID: " + appWidgetId);
     }
 
     @Override
@@ -99,14 +98,16 @@ public class CaptureWidget extends AppWidgetProvider {
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
 
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.capture_widget);
+        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.capture_widget_test);
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
 //        ComponentName thisAppWidget = new ComponentName(context.getPackageName(), CaptureWidget.class.getName());
-        ComponentName thisAppWidget = new ComponentName(context, CaptureWidget.class);
+        ComponentName thisAppWidget = new ComponentName(context, CaptureWidgetTest.class);
         int[] appWidgets = appWidgetManager.getAppWidgetIds(thisAppWidget);
 
         final String action = intent.getAction();
-        if(action.equals(AppWidgetManager.ACTION_APPWIDGET_UPDATE)) {
+        assert action != null;
+        switch (action) {
+            case AppWidgetManager.ACTION_APPWIDGET_UPDATE:
 ////          주기적 update
 //            removePreviousAlarm();
 //            long firstTime = System.currentTimeMillis() + WIDGET_UPDATE_INTERVAL;
@@ -115,29 +116,30 @@ public class CaptureWidget extends AppWidgetProvider {
 //            mManager.set(AlarmManager.RTC, firstTime, mSender);
 ////          주기적 update
 
-            Bundle extras = intent.getExtras();
-            //Bundle 은 Key-Value 쌍으로 이루어진 일종의 해쉬맵 자료구조
-            //한 Activity에서 Intent 에 putExtras로 Bundle 데이터를 넘겨주고,
-            //다른 Activity에서 getExtras로 데이터를 참조하는 방식입니다.
-            if(extras!=null)
-            {
-                int [] appWidgetIds = extras.getIntArray(AppWidgetManager.EXTRA_APPWIDGET_IDS);
-                if(appWidgetIds!=null && appWidgetIds.length>0)
-                    this.onUpdate(context, appWidgetManager, appWidgetIds);
-            }
-        }
-        else if(action.equals(ACTION_BUTTON1)) {
+                Bundle extras = intent.getExtras();
+                //Bundle 은 Key-Value 쌍으로 이루어진 일종의 해쉬맵 자료구조
+                //한 Activity에서 Intent 에 putExtras로 Bundle 데이터를 넘겨주고,
+                //다른 Activity에서 getExtras로 데이터를 참조하는 방식입니다.
+                if (extras != null) {
+                    int[] appWidgetIds = extras.getIntArray(AppWidgetManager.EXTRA_APPWIDGET_IDS);
+                    if (appWidgetIds != null && appWidgetIds.length > 0)
+                        this.onUpdate(context, appWidgetManager, appWidgetIds);
+                }
+                break;
+            case ACTION_BUTTON1:
 
-            Toast.makeText(context, "버튼을 클릭했어요.", Toast.LENGTH_LONG).show();
-            onUpdate(context, appWidgetManager, appWidgets);
-        }
-        else if(action.equals(ACTION_BUTTON3)){
-            Toast.makeText(context, "이미지를 교체 할께요.", Toast.LENGTH_SHORT).show();
-            //AsyncTask를 이용해서 이미지를 가져와서 교체해 보자.
-            String imgUrl = "https://img.fifa.com/image/upload/t_tc1/iimdtmzmdtirekoftruv.jpg";
-            new DownloadBitmap(views, appWidgets[0], appWidgetManager).execute(imgUrl); //AsyncTask 실행
+                Toast.makeText(context, "버튼을 클릭했어요.", Toast.LENGTH_LONG).show();
+                onUpdate(context, appWidgetManager, appWidgets);
+                break;
+            case ACTION_BUTTON3:
+                Toast.makeText(context, "이미지를 교체 할께요.", Toast.LENGTH_SHORT).show();
+                //AsyncTask를 이용해서 이미지를 가져와서 교체해 보자.
+                String imgUrl = "https://img.fifa.com/image/upload/t_tc1/iimdtmzmdtirekoftruv.jpg";
+                new DownloadBitmap(views, appWidgets[0], appWidgetManager).execute(imgUrl); //AsyncTask 실행
+
 //            appWidgetManager.updateAppWidget(new ComponentName(context, CaptureWidget.class), views);
-            appWidgetManager.updateAppWidget(thisAppWidget, views);
+                appWidgetManager.updateAppWidget(thisAppWidget, views);
+                break;
         }
         Log.e(TAG, "onReceive: " + action);
     }
@@ -146,7 +148,7 @@ public class CaptureWidget extends AppWidgetProvider {
     public void onDeleted(Context context, int[] appWidgetIds) {
         // When the user deletes the widget, delete the preference associated with it.
         for (int appWidgetId : appWidgetIds) {
-            CaptureWidgetConfigureActivity.deleteTitlePref(context, appWidgetId);
+            CaptureWidgetTestConfigure.deleteTitlePref(context, appWidgetId);
         }
         removePreviousAlarm();
     }
@@ -161,7 +163,7 @@ public class CaptureWidget extends AppWidgetProvider {
         // Enter relevant functionality for when the last widget is disabled
     }
 
-    public class DownloadBitmap extends AsyncTask<String, Void, Bitmap> {
+    public static class DownloadBitmap extends AsyncTask<String, Void, Bitmap> {
 
         private RemoteViews views;
         private int widgetID;
@@ -206,14 +208,15 @@ public class CaptureWidget extends AppWidgetProvider {
         }
     }
 
+    @SuppressLint("SimpleDateFormat")
     static private String getDate(String mode){
         SimpleDateFormat mFormat;
-        if(mode == "day") {
+        if(mode.equals("day")) {
             mFormat = new SimpleDateFormat("yyyy/MM/dd");
             long now = System.currentTimeMillis();
             Date date = new Date(now);
             return mFormat.format(date);
-        } else if (mode == "time") {
+        } else if (mode.equals("time")) {
             mFormat = new SimpleDateFormat("HH:mm");
 //            long now = System.currentTimeMillis();
             Date date = new Date();

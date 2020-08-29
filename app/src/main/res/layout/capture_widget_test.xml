@@ -10,8 +10,6 @@
         android:id="@+id/appwidget_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
         android:layout_margin="6dp"
         android:background="#09C"
         android:contentDescription="@string/appwidget_text"
@@ -24,36 +22,37 @@
         android:id="@+id/message_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Message"
+        android:text="@string/message"
         android:textColor="#ffffff"
-        android:textSize="24dp" />
+        android:textSize="24sp" />
 
     <ImageView
         android:id="@+id/imagePhotoView"
         android:src="@mipmap/ic_launcher_round"
         android:layout_margin="14dp"
         android:layout_width="match_parent"
-        android:layout_height="150dp" />
+        android:layout_height="150dp"
+        android:contentDescription="@string/image" />
 
     <Button
         android:id="@+id/button1"
         android:layout_width="150dp"
         android:layout_height="wrap_content"
-        android:textSize="14dp"
-        android:text="위젯 업데이트" />
+        android:textSize="14sp"
+        android:text="@string/update" />
 
     <Button
         android:id="@+id/button2"
         android:layout_width="150dp"
         android:layout_height="wrap_content"
-        android:textSize="14dp"
-        android:text="웹사이트 열기" />
+        android:textSize="14sp"
+        android:text="@string/open" />
 
     <Button
         android:id="@+id/button3"
         android:layout_width="150dp"
         android:layout_height="wrap_content"
-        android:textSize="14dp"
-        android:text="이미지교체" />
+        android:textSize="14sp"
+        android:text="@string/replace" />
 
 </LinearLayout>
