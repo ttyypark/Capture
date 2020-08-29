@@ -4,5 +4,5 @@
     <!-- Exclude the shared preferences file that contains the GCM registrationId -->
     <exclude
         domain="sharedpref"
-        path="com.example.capture.CaptureWidget.xml" />
+        path="com.example.capture.CaptureWidgetTest.xml" />
 </full-backup-content>
