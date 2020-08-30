@@ -31,6 +31,9 @@ public abstract class CursorRecyclerViewAdapter<VH extends RecyclerView.ViewHold
         }
     }
 
+    protected CursorRecyclerViewAdapter() {
+    }
+
     public Cursor getCursor() {
         return mCursor;
     }
