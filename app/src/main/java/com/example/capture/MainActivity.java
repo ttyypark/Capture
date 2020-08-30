@@ -28,7 +28,40 @@ import java.util.List;
 //               post(event)  -  Integer   MusicPlayerActivity.stopPlayer()
 //               post(retriver)  -  Retriver
 //        updateNotificationPlayer();                 // Notification쪽 UI
-//        sendBroadcast(new Intent(BroadcastActions.PREPARED,  // Widget쪽
+//        sendBroadcast(new Intent(BroadcastActions.PREPARED, // Widget쪽 // action
+//                Uri.EMPTY,                                              // data
+//                getApplicationContext(),                                // context
+//                CaptureWidgetProvider.class));                          //class
+//        --  Broadcast receiver 쪽 (Manifests에 receiver 정의하는 방법과 비교)
+//            private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+//                @Override
+//                public void onReceive(Context context, Intent intent) {
+//                        updateUI();
+//                }
+//            };
+//            protected void onCreate(Bundle savedInstanceState){
+//                registerBroadcast();
+//            }
+//            protected void onDestroy() {
+//                unregisterBroadcast();
+//            }
+//            private void registerBroadcast() {
+//                IntentFilter filter = new IntentFilter();
+//                filter.addAction(BroadcastActions.PREPARED);
+//                filter.addAction(BroadcastActions.PLAY_STATE_CHANGED);
+//                registerReceiver(mBroadcastReceiver, filter);
+//            }
+//
+//            private void unregisterBroadcast() {
+//                unregisterReceiver(mBroadcastReceiver);
+//            }
+// -----------------------------------------------------------------------------------
+// Adapter 사용법  -------------------------------------------------------------------
+//  VideoPlayer는 CursorRecyclerViewAdapter - cursor - Array 사용안함
+//  PhotoPlayer는 RecyclerViewAdapter - cursor - photoList Array(PhotoItem) 사용
+//                                  interface onItemClickListener 사용
+//  MusicPlayer는 RecyclerViewAdapter - retriever - songList Array (Uri) 사용
+//                                  interface onItemClickListener 사용
 // -----------------------------------------------------------------------------------
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -101,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Intent cameraIntent = new Intent(getApplicationContext(), CameraActivity.class);
                 startActivity(cameraIntent);
                 break;
-            case R.id.gallery: // 사진찍기
+            case R.id.gallery: // 갤러리
                 Intent galleryIntent = new Intent(getApplicationContext(), PhotoGalleryActivity.class);
                 startActivity(galleryIntent);
                 break;
