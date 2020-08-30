@@ -15,6 +15,7 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 <!--    <uses-permission android:name="android.permission.RESTART_PACKAGES" />-->
 
+<!--    Scoped mode 사용: requestLegacyExternalStorage="true"-->
     <application
         android:name=".MusicApplication"
         android:allowBackup="true"
@@ -28,7 +29,7 @@
         tools:targetApi="q"
         android:fullBackupContent="@xml/backup_descriptor">
         <receiver
-            android:name=".CaptureWidget"
+            android:name=".CaptureWidgetTest"
             android:label="Capture Widget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -61,7 +62,7 @@
                 android:resource="@xml/appwidget_4x1" />
         </receiver>
 
-        <activity android:name=".CaptureWidgetConfigureActivity">
+        <activity android:name=".CaptureWidgetTestConfigure">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
@@ -75,7 +76,10 @@
         <activity android:name=".MusicPlayerActivity" />
         <activity android:name=".CameraActionActivity" />
         <activity android:name=".AudioRecordActivity" />
-        <activity android:name=".PhotosActivity" />
+        <activity android:name=".PhotoGalleryActivity" />
+        <activity android:name=".PhotoViewActivity" />
+<!--        <activity android:name=".PhotosActivity" />-->
+<!--        PhotoFragment, PhotoViewFragment와 같이 사용되지 않음 -->
 
         <activity android:name=".MainActivity">
             <intent-filter>
@@ -98,6 +102,7 @@
                 <action android:name="CLOSE" />
             </intent-filter>
         </service> <!-- service 사용시 필요 -->
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.example.capture"
@@ -118,3 +123,4 @@
     <!--            android:authorities="com.example.provider.capture"-->
     <!--            android:exported="false" />-->
 
+<!---->

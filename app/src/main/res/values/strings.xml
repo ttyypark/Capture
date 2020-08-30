@@ -22,5 +22,15 @@
     <string name="configure">Configure</string>
     <string name="add_widget">Add widget</string>
     <string name="tempTitle">Title 입니다</string>
+    <string name="message">Message</string>
+    <string name="image">이미지</string>
+    <string name="update">위젯 업데이트</string>
+    <string name="open">웹사이트 열기</string>
+    <string name="replace">이미지교체</string>
+    <string name="albumart">albumart</string>
+    <string name="sample_artist">Sample Artist</string>
+    <string name="controls">TODO</string>
+    <string name="sample_title">Sample Title</string>
+    <string name="edit">수정</string>
 
 </resources>
