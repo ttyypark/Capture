@@ -75,7 +75,7 @@
             app:srcCompat="@mipmap/ic_launcher" />
 
         <Button
-            android:id="@+id/stop_record"
+            android:id="@+id/goto_gallery"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
