@@ -7,8 +7,10 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
+import android.os.ParcelFileDescriptor;
 import android.provider.BaseColumns;
 import android.provider.MediaStore;
 import android.text.format.DateFormat;
@@ -22,14 +24,18 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
+import com.example.capture.adapters.CursorRecyclerViewAdapter;
 import com.example.capture.services.MusicService;
+import com.squareup.picasso.Picasso;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.io.FileDescriptor;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AudioAdapter extends RecyclerView.Adapter <AudioAdapter.MyAudioViewHolder> {
+public class AudioAdapter extends CursorRecyclerViewAdapter<AudioAdapter.MyAudioViewHolder> {
     public interface onItemClickListener{
         void onItemClicked(Uri model);
     }
@@ -39,6 +45,7 @@ public class AudioAdapter extends RecyclerView.Adapter <AudioAdapter.MyAudioView
     private String TAG = "오디오어댑터";
     private Context mContext;
     public ArrayList<Uri> mSongList;
+    public ArrayList<Long> mSongID;
     private Uri mUri;
 
     // 리스너 객체 전달함수
@@ -46,18 +53,14 @@ public class AudioAdapter extends RecyclerView.Adapter <AudioAdapter.MyAudioView
         this.mListener = listener;
     }
 
-    public AudioAdapter() {}
-
     public AudioAdapter(onItemClickListener listener) {
         mListener = listener;
     }
 
-    public AudioAdapter(Context context) {
+    public AudioAdapter(Context context, Cursor cursor) {
+        super(context, cursor);
         this.mContext = context;
         if(mSongList == null) this.mSongList = getSongList();
-        if (context instanceof FragmentCallback) {
-            callback = (FragmentCallback) context;
-        }
     }
 
     public void setSongs(ArrayList <Uri> Songs) {       // ?? 사용처 확인
@@ -73,78 +76,62 @@ public class AudioAdapter extends RecyclerView.Adapter <AudioAdapter.MyAudioView
                 .inflate(R.layout.listitem_audio, parent, false);
 //        View view = ((LayoutInflater)parent.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.listitem_audio, parent, false) ;
         final MyAudioViewHolder viewHolder = new MyAudioViewHolder(view);
+//  onCreateViewHolder에서 setOnClickListener사용.
+//          ViewHolder에서 사용할 수도 있고
+//          onBindViewHolder 에서도 가능
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if(mListener != null){
                     final Uri item = mSongList.get(viewHolder.getAdapterPosition());
                     mListener.onItemClicked(item);
+                    Log.e(TAG, "Playing Title:" + viewHolder.holderTitle);
                 }
             }
         });
         return viewHolder;
     }
 
-    // onBindViewHolder() - position에 해당하는 데이터를 뷰홀더의 아이템뷰에 표시.
     @Override
-    public void onBindViewHolder(@NonNull MyAudioViewHolder viewHolder, int position) {
-        mUri = mSongList.get(position);
-
-        Log.i(TAG, "BindViewHolder : " + position + "");
-//        MediaMetadataRetriever 를 이용하여 데이터 처리 ================
-        final MediaMetadataRetriever retriever;
-        try {
-            retriever = new MediaMetadataRetriever();
-            retriever.setDataSource(mContext, mUri);
-            AudioItem audioItem = AudioItem.bindRetriever(retriever);
-            ((MyAudioViewHolder) viewHolder).setAudioItem(audioItem, position);
-            Log.e(TAG, "onBinding Title:" + audioItem.mTitle + ", Artist:" + audioItem.mArtist + mUri);
-
-        } catch (Exception e) {
-            Log.d(TAG, "Retriever 오류! ");
-            e.printStackTrace();
-        }
-
-//        viewHolder.mView.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if(mListener != null){
-//                    final Uri item = mSongList.get(viewHolder.getAdapterPosition());
-//                    mListener.onItemClicked(item);
-//                }
-//
-//                Log.d(TAG, "item 클릭 Uri : " + mUri);
-////                    Log.d(TAG, "title : " + title);
-//
-//                //  startService로 MusicService#playMusic 사용 ------------------대체
-//                /**
-//                 * 음악 틀기
-//                 * {@link com.example.capture.services.MusicService#playMusic(Uri)}
-//                 */
-//                Intent intent = new Intent(mContext, MusicService.class);
-//                intent.setAction(MusicService.ACTION_PLAY);
-//                intent.putExtra("uri", mUri);
-//                mContext.startService(intent);
-//
-//                // fragment 옮기기 -> player fragment
-//                /**
-//                 * Axtivity 로 정보 쏘기
-//                 *  {@link com.example.capture.MusicPlayerActivity#setPage(int)}
-//                 */
-//
-//                if (callback != null) callback.setPage(1);
-//            }
-//        });
+    public void onBindViewHolder(MyAudioViewHolder viewHolder, Cursor cursor) {
+        AudioItem audioItem = AudioItem.bindCursor(mContext, cursor);
+        ((MyAudioViewHolder) viewHolder).setAudioItem(audioItem, cursor.getPosition());
+        Log.e(TAG, "onBinding Title:" + audioItem.mTitle + ", Artist:" + audioItem.mArtist);
     }
+
+//    @Override
+//    public void onBindViewHolder(@NonNull MyAudioViewHolder viewHolder, int position) {
+////        AudioItem audioItem = AudioItem.bindCursor(mSongCursorList.get(position));  // bindCursor
+////        ((MyAudioViewHolder) viewHolder).setAudioItem(audioItem, position);         // 활용
+////        Log.e(TAG, "onBinding Title:" + audioItem.mTitle + ", Artist:" + audioItem.mArtist);
+//
+////==============================================================
+//        mUri = mSongList.get(position);
+//        Log.i(TAG, "BindViewHolder : " + position + "");
+////        MediaMetadataRetriever 를 이용하여 데이터 처리 ================
+//        final MediaMetadataRetriever retriever;
+//        try {
+//            retriever = new MediaMetadataRetriever();
+//            retriever.setDataSource(mContext, mUri);
+//            AudioItem audioItem = AudioItem.bindRetriever(retriever);
+//            ((MyAudioViewHolder) viewHolder).setAudioItem(audioItem, position);
+//            Log.e(TAG, "onBinding Title:" + audioItem.mTitle + ", Artist:" + audioItem.mArtist
+//                    + ", uri:" + mUri);
+//
+//        } catch (Exception e) {
+//            Log.d(TAG, "Retriever 오류! ");
+//            e.printStackTrace();
+//        }
+//    }
 
     @Override
     public int getItemCount() {
         return mSongList.size();
-//        return mItems.size();
     }
 
     public ArrayList<Uri> getSongList(){
         ArrayList<Uri> songList = new ArrayList<>();
+        mSongID = new ArrayList<>();
         String selection = MediaStore.Audio.Media.IS_MUSIC + " = 1";
         String sortOrder = MediaStore.Audio.Media.TITLE + " COLLATE LOCALIZED ASC";
 
@@ -154,37 +141,36 @@ public class AudioAdapter extends RecyclerView.Adapter <AudioAdapter.MyAudioView
                 null,
                 null);
 //        sortOrder);
-        if (cursor != null) {
+        if (cursor != null && cursor.getCount() > 0) {
             while (cursor.moveToNext()) {
+                long songID = cursor.getLong(cursor.getColumnIndexOrThrow(BaseColumns._ID));
+                mSongID.add(songID);
                 Uri uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                         cursor.getLong(
                         cursor.getColumnIndexOrThrow(BaseColumns._ID)));
                 songList.add(uri);
-                Log.d(TAG, "getSongList Title:" + cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)));
+//                Log.d(TAG, "getSongList Title:" + cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)));
             }
         }
-        mSongList = songList;  // ??
+        cursor.close();
         return songList;
     }
 
     // 아이템 뷰를 저장하는 뷰홀더 클래스.
-    public class MyAudioViewHolder extends RecyclerView.ViewHolder{
+    public static class MyAudioViewHolder extends RecyclerView.ViewHolder{
         private final Uri artworkUri = Uri.parse("content://media/external/audio/albumart");
+//        private final Uri artworkUri = MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI;
         private ImageView mImgAlbumArt;
         private TextView mTxtTitle;
         private TextView mTxtSubTitle;
         private TextView mTxtDuration;
-//        private AudioItem mItem;
-//        private int mPosition;
-//        private View mView;
+        private int mPosition;
+        private String holderTitle;
 
-        // TODO: 2020-07-16
-        // viewholder 재사용
 
         public MyAudioViewHolder(@NonNull View view) {
             super(view);
             // 뷰 객체에 대한 참조. (hold strong reference)
-//            mView = view;
             mImgAlbumArt = (ImageView) view.findViewById(R.id.img_albumart);
             mTxtTitle = (TextView) view.findViewById(R.id.txt_title);
             mTxtSubTitle = (TextView) view.findViewById(R.id.txt_sub_title);
@@ -192,50 +178,31 @@ public class AudioAdapter extends RecyclerView.Adapter <AudioAdapter.MyAudioView
 //            view.setOnClickListener(new View.OnClickListener() {
 //                @Override
 //                public void onClick(View v) {
-//                    // ..
-//                    if(mListener != null){
-//                        mListener.onItemClicked(mUri);
-//                    }
-////                    // mSongList 초기화 ??
-////                    MusicApplication.getInstance().getServiceInterface().setmSongList(getSongList());
-////
-//                    Log.d("AudioAdapter", "item 클릭 Uri : " + mUri);
-////                    Log.d(TAG, "title : " + title);
-//
-//                    //  startService로 MusicService#playMusic 사용 ------------------대체
-//                    /**
-//                     * 음악 틀기
-//                     * {@link com.example.capture.services.MusicService#playMusic(Uri)}
-//                     */
-//                    Intent intent = new Intent(mContext, MusicService.class);
-//                    intent.setAction(MusicService.ACTION_PLAY);
-//                    intent.putExtra("uri", mUri);
-//                    mContext.startService(intent);
-//
-//                    // fragment 옮기기 -> player fragment
-//                    /**
-//                     * Activity 로 정보 쏘기
-//                     *  {@link com.example.capture.MusicPlayerActivity#setPage(int)}
-//                     */
-//                     if (callback != null) callback.setPage(1);
+//                    // play(mPosition)  .....
 //                }
 //            });
         }
 
         public void setAudioItem(AudioItem item, int position) {
 //            mItem = item;
-//            mPosition = position;
+            mPosition = position;
+            holderTitle = item.mTitle;      // temp
             mTxtTitle.setText(item.mTitle);
             mTxtSubTitle.setText(item.mArtist + "(" + item.mAlbum + ")");
             mTxtDuration.setText(DateFormat.format("mm:ss", item.mDuration));
-//            Uri albumArtUri = ContentUris.withAppendedId(artworkUri, item.mAlbumId);
+            Uri albumArtUri = ContentUris.withAppendedId(
+                    Uri.parse("content://media/external/audio/albumart"), item.mAlbumId);
+            Picasso.get().load(albumArtUri).error(R.drawable.snow).into(mImgAlbumArt);
 //            Glide.with(itemView.getContext()).load(albumArtUri).error(R.drawable.snow).into(mImgAlbumArt);
-//            Picasso.get().load(albumArtUri).error(R.drawable.empty_albumart).into(mImgAlbumArt);
-            if(item.mBitmap != null) {
-                mImgAlbumArt.setImageBitmap(item.mBitmap);
-            } else {
-                mImgAlbumArt.setImageResource(R.drawable.snow);
-            }
+
+//                Drawable image = Drawable.createFromPath(item.mAlbum);
+//                mImgAlbumArt.setImageDrawable(image);
+
+//            if(item.mBitmap != null) {
+//                mImgAlbumArt.setImageBitmap(item.mBitmap);
+//            } else {
+//                mImgAlbumArt.setImageResource(R.drawable.snow);
+//            }
         }
 
     }
@@ -250,32 +217,96 @@ public class AudioAdapter extends RecyclerView.Adapter <AudioAdapter.MyAudioView
         public String mDataPath; // 실제 데이터위치
         public Bitmap mBitmap = null;
 
-        public static AudioItem bindRetriever(MediaMetadataRetriever retriever) {
-            // 개별 item, retriever
+        // 사용 안함
+//        public static AudioItem bindRetriever(MediaMetadataRetriever retriever) {
+//            // 개별 item, retriever
+//            AudioItem audioItem = new AudioItem();
+//            audioItem.mTitle = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+//            audioItem.mArtist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+//            audioItem.mAlbum = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
+//            audioItem.mDuration = Long.parseLong(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
+//            //             오디오 앨범 자켓 이미지
+//            Bitmap bitmap;
+//            byte[] albumImage = retriever.getEmbeddedPicture();
+//
+//            if(albumImage == null) {
+//                bitmap = BitmapFactory.decodeResource(Resources.getSystem(),  R.drawable.snow);
+//            } else {
+//                bitmap = BitmapFactory.decodeByteArray(albumImage, 0, albumImage.length);
+//            }
+//
+//            audioItem.mBitmap = bitmap;
+//
+//            Log.d("AudioItem bindRetriever", " Title:" + audioItem.mTitle + ", Artist:" + audioItem.mArtist);
+//            return audioItem;
+//        }
+
+        public static AudioItem bindCursor(Context context, Cursor cursor) {
             AudioItem audioItem = new AudioItem();
-//            audioItem.mId = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.AudioColumns._ID));
-//            audioItem.mAlbumId = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.AudioColumns.ALBUM_ID));
-            audioItem.mTitle = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-            audioItem.mArtist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-            audioItem.mAlbum = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
-            audioItem.mDuration = Long.parseLong(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
-//            String duration = retriever.extractMetadata((MediaMetadataRetriever.METADATA_KEY_DURATION));
-//            audioItem.mDataPath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.AudioColumns.DATA));
-            //             오디오 앨범 자켓 이미지
-            Bitmap bitmap;
-            byte[] albumImage = retriever.getEmbeddedPicture();
+            audioItem.mId = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media._ID));
+            audioItem.mAlbumId = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID));
+            audioItem.mTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
+            audioItem.mArtist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
+            audioItem.mAlbum = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
+            audioItem.mDuration = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
+            audioItem.mDataPath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA));
+            audioItem.mBitmap = getAlbumart(context, audioItem.mAlbumId);
 
-            if(albumImage == null) {
-                bitmap = BitmapFactory.decodeResource(Resources.getSystem(),  R.drawable.snow);
-            } else {
-                bitmap = BitmapFactory.decodeByteArray(albumImage, 0, albumImage.length);
-            }
+////            audioItem.mDataPath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.AudioColumns.DATA));  // AudioColumns ==> Media 로 !!
+//            Cursor cursorAlbum = context.getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+//                    new String[]{MediaStore.Audio.Albums._ID, MediaStore.Audio.Albums.ALBUM_ART},
+//                    MediaStore.Audio.Albums._ID + "=?",
+//                    new String[] {String.valueOf(audioItem.mAlbumId)}, null);
+////            Cursor cursorAlbum = context.getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+////                    new String[]{MediaStore.Audio.Albums._ID, MediaStore.Audio.Albums.ALBUM_ART},
+////                    MediaStore.Audio.Albums._ID + "=" + audioItem.mAlbumId, null, null);
+//
+//            if(cursorAlbum != null && cursorAlbum.moveToFirst()){
+//                audioItem.mAlbum = cursorAlbum.getString(cursorAlbum.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+//                cursorAlbum.close();
+//            }
 
-            audioItem.mBitmap = bitmap;
-
-            Log.d("AudioItem bindRetriever", " Title:" + audioItem.mTitle + ", Artist:" + audioItem.mArtist);
+            Log.d("AudioItem bindCursor", " Title:" + audioItem.mTitle + ", Artist:" + audioItem.mArtist);
             return audioItem;
         }
+    }
 
+    public static Bitmap getAlbumart(Context context, Long album_id) {
+        Bitmap albumArtBitMap = null;
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        try {
+            final Uri sArtworkUri = Uri
+                    .parse("content://media/external/audio/albumart");
+            Uri uri = ContentUris.withAppendedId(sArtworkUri, album_id);
+            ParcelFileDescriptor pfd = context.getContentResolver()
+                    .openFileDescriptor(uri, "r");
+
+            if (pfd != null) {
+                FileDescriptor fd = pfd.getFileDescriptor();
+                albumArtBitMap = BitmapFactory.decodeFileDescriptor(fd, null,
+                        options);
+                pfd = null;
+                fd = null;
+            }
+        } catch (Error ee) {
+        } catch (Exception e) {
+        }
+
+        if (null != albumArtBitMap) {
+            return albumArtBitMap;
+        }
+        return getDefaultAlbumArtEfficiently(context.getResources());
+    }
+
+    public static Bitmap getDefaultAlbumArtEfficiently(Resources resource) {
+        Bitmap defaultBitmapArt = null;
+//        if (defaultBitmapArt == null) {
+            defaultBitmapArt = BitmapFactory.decodeResource(resource, R.drawable.snow);
+//            defaultBitmapArt = decodeSampledBitmapFromResource(resource,
+//                    R.drawable.snow, UtilFunctions
+//                            .getUtilFunctions().dpToPixels(85, resource),
+//                    UtilFunctions.getUtilFunctions().dpToPixels(85, resource));
+//        }
+        return defaultBitmapArt;
     }
 }

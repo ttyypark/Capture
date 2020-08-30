@@ -536,7 +536,7 @@ public class MusicFragment extends Fragment {
             /**
              * {@link MusicPlayerFragment#updateUI(Boolean)}
              */
-            EventBus.getDefault().post(mService.isPlaying());
+            EventBus.getDefault().post(mService.isPlaying());  //???
         }
 
         @Override
