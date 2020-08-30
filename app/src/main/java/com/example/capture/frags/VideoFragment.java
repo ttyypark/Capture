@@ -13,6 +13,7 @@ import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import android.provider.BaseColumns;
 import android.provider.MediaStore;
 import android.text.format.DateFormat;
@@ -37,6 +38,7 @@ import com.example.capture.services.MusicService;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -47,6 +49,7 @@ import static android.media.ThumbnailUtils.createVideoThumbnail;
 public class VideoFragment extends Fragment {
     private static final String TAG = "비디오";
     FragmentCallback callback;
+    VideoRecyclerAdapter videoRecyclerAdapter;
 
     public VideoFragment() {
     }
@@ -82,18 +85,19 @@ public class VideoFragment extends Fragment {
 //   cursor 로 데이터를 가져와서 처리
         Cursor cursor = requireActivity().getContentResolver()
                 .query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                null, null, null, null);
-        recyclerView.setAdapter(new VideoRecyclerAdapter(getActivity(), cursor));
+                        null, null, null,
+                        MediaStore.MediaColumns.DATE_MODIFIED + " desc");
+//        null, null, null, null);
 
-//        Log.i(TAG, "비디오 수 : " + VideoRecyclerAdapter.getItemCount());
+        videoRecyclerAdapter = new VideoRecyclerAdapter(getActivity(), cursor);
+        recyclerView.setAdapter(videoRecyclerAdapter);
+
+        Log.i(TAG, "비디오 수 : " + videoRecyclerAdapter.getItemCount());
 
         // 추가
-//        GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), 3);
-//        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(
                 3, StaggeredGridLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(layoutManager);
-
 
 //        cursor.close();
     }
@@ -126,10 +130,10 @@ public class VideoFragment extends Fragment {
             final String title = cursor.getString(cursor.getColumnIndex(MediaStore.Video.VideoColumns.DISPLAY_NAME));
 
 //          입력받은 cursor를 이용하여 데이터 처리 =======================
-            VideoItem videoItem = VideoItem.bindCursor(cursor);
+            VideoItem videoItem = VideoItem.bindCursor(cursor, uri, mContext);
             if (videoItem == null) return;
             viewHolder.setVideoItem(videoItem, cursor.getPosition());
-            Log.d(TAG, "Bind Title:" + videoItem.mTitle + ", 촬영날자:" + videoItem.mDate);
+//            Log.d(TAG, "Bind Title:" + videoItem.mTitle + ", 촬영날자:" + videoItem.mDate);
 
 //            //        MediaMetadataRetriever 를 이용하여 데이터 처리 ================
 //            final MediaMetadataRetriever retriever;
@@ -207,19 +211,20 @@ public class VideoFragment extends Fragment {
                 mImgAlbumArt.setImageResource(R.drawable.snow);
             }
         }
-    }  // AudioHolder
+    }
 
     public static class VideoItem{
+        Context mContext;
         public long mId; // 오디오 고유 ID
 //        public long mAlbumId; // 오디오 앨범아트 ID
         public String mTitle; // 타이틀 정보
-        public String mDate; // 아티스트 정보
+        public String mDate; //
         public String mAlbum; // 앨범 정보
         public long mDuration; // 재생시간
         public String mDataPath; // 실제 데이터위치
         public Bitmap mBitmap;
 
-        public static VideoItem bindCursor(Cursor cursor) {
+        public static VideoItem bindCursor(Cursor cursor, Uri uri, Context mContext) {
             // 개별 item, cursor
             VideoItem videoItem = new VideoItem();
             //  Audio Image -----
@@ -236,37 +241,58 @@ public class VideoFragment extends Fragment {
                     long lDate = Long.parseLong(Sdate);
                     videoItem.mDate = new SimpleDateFormat("yyyyMMdd", Locale.KOREA).format(new Date(lDate));
                 } else {
-                    videoItem.mDate = videoItem.mTitle;
+                    // path 나누기 ----------------------
+                    String[] pathArr = videoItem.mTitle.split("_");
+                    if(pathArr[0].equals("band")){
+                        videoItem.mDate = pathArr[0] + pathArr[2] + pathArr[3] + pathArr[4];
+                    } else if(pathArr[0].equals("kakaotalk")) {
+                        videoItem.mDate = pathArr[0] + pathArr[1];
+                    } else {
+                        videoItem.mDate = videoItem.mTitle;
+                    }
                 }
 
             }
             videoItem.mAlbum = cursor.getString(cursor.getColumnIndex(MediaStore.Video.VideoColumns.ALBUM));
             videoItem.mDuration = cursor.getLong(cursor.getColumnIndex(MediaStore.Video.VideoColumns.SIZE));
 
-            String path = cursor.getString(cursor.getColumnIndex(MediaStore.Video.VideoColumns.DATA));
+            String path = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.DATA));
+//            String path = cursor.getString(cursor.getColumnIndex(MediaStore.Video.VideoColumns.DATA));
+//  MediaStore.Video.VideoColumns.DATA 으로 path 자료를 가져올수 없음. Title 이 들어있음.
+//            ContentResolver.openFileDescriptor(Uri, String) 를 사용하라고 함
+// path 나누기 ----------------------
             String[] pathArr = path.split("/");
             videoItem.mDataPath = pathArr[pathArr.length-1];
 
-            Log.d(TAG, "Title:" + videoItem.mTitle + ", Date:" + videoItem.mDate);
+            Log.d(TAG, "Title:" + videoItem.mTitle + ", Date:" + videoItem.mDate
+                                     + ", Path:" + videoItem.mDataPath);
             return videoItem;
         }
 
         public static VideoItem bindRetriever(MediaMetadataRetriever retriever, Uri uri) {
             // 개별 item, retriever
             VideoItem videoItem = new VideoItem();
-//            audioItem.mId = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.AudioColumns._ID));
-//            audioItem.mAlbumId = cursor.getLong(cursor.getColumnIndex(MediaStore.Audio.AudioColumns.ALBUM_ID));
             videoItem.mTitle = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
             videoItem.mDate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE);
             videoItem.mAlbum = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
             videoItem.mDuration = Long.parseLong(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
-//            String duration = retriever.extractMetadata((MediaMetadataRetriever.METADATA_KEY_DURATION));
-//            audioItem.mDataPath = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.AudioColumns.DATA));
-//          오디오 앨범 자켓 이미지
             videoItem.mBitmap = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST);
             Log.d(TAG, "Title:" + videoItem.mTitle + ", Album:" + videoItem.mAlbum);
             return videoItem;
         }
+    }
+
+    public String getRealPathFromURI(Uri contentUri) {
+
+        String[] proj = { MediaStore.Video.Media.DATA };
+
+        Cursor cursor = requireActivity().getContentResolver().query(contentUri, proj, null, null, null);
+        cursor.moveToNext();
+        String path = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.DATA));
+        Uri uri = Uri.fromFile(new File(path));
+
+        cursor.close();
+        return path;
     }
 
 }
