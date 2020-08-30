@@ -36,7 +36,6 @@ public class PhotoFragment extends Fragment {
     FragmentCallback callback;
     private static final String TAG = "사진";
     private Context mContext;
-//    FragmentCallback callback;
 
     public PhotoFragment() {
     }
