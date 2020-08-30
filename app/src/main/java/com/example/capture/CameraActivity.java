@@ -61,6 +61,7 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
 
         findViewById(R.id.button).setOnClickListener(this);
         findViewById(R.id.button2).setOnClickListener(this);
+        findViewById(R.id.goto_gallery).setOnClickListener(this);
 
     }
 
@@ -76,7 +77,10 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
                 Intent intent = new Intent(getApplicationContext(), CameraActionActivity.class);
                 startActivityForResult(intent, REQUEST_MY_IMAGE_CATURE);
                 break;
-
+            case R.id.goto_gallery: // 갤러리
+                Intent galleryIntent = new Intent(getApplicationContext(), PhotoGalleryActivity.class);
+                startActivity(galleryIntent);
+                break;
         }
     }
 
@@ -219,4 +223,11 @@ public class CameraActivity extends AppCompatActivity implements View.OnClickLis
         return image;
     }
 
+
+
+    public String createFileName() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyMMdd_HHmmss", Locale.KOREA).format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + ".jpg";
+        return imageFileName;
+    }
 }

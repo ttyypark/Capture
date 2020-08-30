@@ -1,5 +1,7 @@
 package com.example.capture;
 
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -9,6 +11,9 @@ import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
+import android.os.ParcelFileDescriptor;
+import android.provider.MediaStore;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Surface;
@@ -17,6 +22,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.ByteArrayOutputStream;
@@ -26,10 +32,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
+//// camera 예제
+// https://webnautes.tistory.com/822
+//
 class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {
     private final String TAG = "CameraPreview";
 
-    private Context context;
+    private Context mContext;
     private AppCompatActivity mActivity;
     private Camera mCamera = null;
     private SurfaceView mSurfaceView;
@@ -45,6 +54,7 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {
 
     public CameraPreview(Context context) {
         super(context);
+        this.mContext = context;
     }
 
     public CameraPreview(Context context, AttributeSet attrs) {
@@ -68,6 +78,7 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {
         mActivity = activity;
         mCameraID = cameraID;
         mSurfaceView = surfaceView;
+        mContext = context;
 
         mSurfaceView.setVisibility(View.VISIBLE);
         init();
@@ -248,36 +259,76 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {
 
     private class SaveImageTask extends AsyncTask<byte[], Void, Void> {
         File outputFile;
+
+        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
         @Override
         protected Void doInBackground(byte[]... data) {
-            FileOutputStream outStream ;
+//            FileOutputStream outStream ;
 
             try {
-
-//                File path = MainActivity.getInstance.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-////                File path = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/capture");
-//                if (!path.exists()) {
-//                    path.mkdirs();
-//                }
-//
-//                String fileName = String.format("%d.jpg", System.currentTimeMillis());
-//                File outputFile = new File(path, fileName);
-
                 outputFile = CameraActivity.getInstance.createImageFile();
 
-                outStream = new FileOutputStream(outputFile);
-//                outStream = new FileOutputStream(MainActivity.currentPhotoPath);
-                outStream.write(data[0]);
-                outStream.flush();
-                outStream.close();
+//// ----------------------------------------------------------------------
+//                beforeQ(data[0], outputFile);
+//// ----------------------------------------------------------------------
+//                outStream = new FileOutputStream(outputFile);
+//                outStream.write(data[0]);
+//                outStream.flush();
+//                outStream.close();
+//
+//                // 갤러리에 반영
+//                Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+//                mediaScanIntent.setData(Uri.fromFile(outputFile));
+//                mContext.sendBroadcast(mediaScanIntent);
+//// ----------------------------------------------------------------------
 
-                Log.d("직접사진기", "저장됨: " + data.length + " to "
-                        + outputFile.getAbsolutePath());
+//// =============================================================================
+//                afterQ(data[0], outputFile);
+                afterQ(data[0], CameraActivity.getInstance.createFileName());
+//// =============================================================================
+//// Insert my file to MediaStore
+//                ContentValues values = new ContentValues();
+////                values.put(MediaStore.Audio.Media.RELATIVE_PATH, "DCIM/My Images"); // 다른 path..
+//                values.put(MediaStore.Images.Media.DISPLAY_NAME, String.valueOf(outputFile));
+//                values.put(MediaStore.Images.Media.MIME_TYPE, "image/*");
+//                values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+//                values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis());
+//                // 파일을 write중이라면 다른곳에서 데이터요구를 무시하겠다는 의미
+//                values.put(MediaStore.Images.Media.IS_PENDING, 1);
+//
+//                ContentResolver resolver = mContext.getContentResolver();
+//                Uri collection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+//                // ContentResolver을 통해 insert를 해주고 해당 insert가 되는 위치의 Uri를 리턴받는다.
+//                // 이후로는 해당 Uri를 통해 파일 관리를 해줄 수 있다.
+//                Uri item = resolver.insert(collection,values);
+//
+////  Uri(item) 위치에 화일 생성
+//                try {
+//                    ParcelFileDescriptor pfd = resolver.openFileDescriptor(item,"w", null);
+//                    if(pfd == null){
+//
+//                    } else {
+//                        outStream = new FileOutputStream(pfd.getFileDescriptor());
+//                        outStream.write(data[0]);
+//                        outStream.close();
+//                        pfd.close();
+//                        resolver.update(item, values, null, null);
+//                    }
+//                } catch (FileNotFoundException e) {
+//                    e.printStackTrace();
+//                } catch (IOException e){
+//                    e.printStackTrace();
+//                }
+//
+//                values.clear();
+//                // 파일을 모두 write하고 다른곳에서 사용할 수 있도록 0으로 업데이트를 해줍니다.
+//                values.put(MediaStore.Images.Media.IS_PENDING, 0);
+//                resolver.update(item, values, null, null);
+//
+//                Log.d("직접사진기", "저장됨: " + data.length + " to "
+//                        + outputFile.getAbsolutePath());
+//// =============================================================================
 
-                // 갤러리에 반영
-                Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-                mediaScanIntent.setData(Uri.fromFile(outputFile));
-                getContext().sendBroadcast(mediaScanIntent);
 
             } catch (FileNotFoundException e) {
                 Log.d("사진기", "File NotFound : " + data.length + " to "
@@ -291,7 +342,70 @@ class CameraPreview extends ViewGroup implements SurfaceHolder.Callback {
         }
     }
 
-        /**
+
+//    private void afterQ(byte[] data, File outputFile) {
+    @RequiresApi(api = Build.VERSION_CODES.Q)
+    private void afterQ(byte[] data, String outputFile) {
+        FileOutputStream outStream ;
+        ContentResolver resolver;
+
+// Insert my file to MediaStore
+        ContentValues values = new ContentValues();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            values.put(MediaStore.Audio.Media.RELATIVE_PATH, "Pictures/camtest"); // 다른 path..
+        }
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, outputFile);
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+//        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+//      file을 write한 다음에 DATE_TAKEN이 설정됨. 그 전에는 null로 setting 됨. IS_PENDING이 1일 경우
+        // 파일을 write중이라면 다른곳에서 데이터요구를 무시하겠다는 의미
+        values.put(MediaStore.Images.Media.IS_PENDING, 1);
+
+        resolver = mContext.getContentResolver();
+        // ContentResolver을 통해 insert를 해주고 해당 insert가 되는 위치의 Uri를 리턴받는다.
+        // 이후로는 해당 Uri를 통해 파일 관리를 해줄 수 있다.
+        Uri uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+
+//  Uri(item) 위치에 화일 생성
+        try {
+            ParcelFileDescriptor pfd = null;
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                pfd = resolver.openFileDescriptor(uri,"w", null);
+//            }
+            if (pfd == null){
+                // ...
+            } else {
+                outStream = new FileOutputStream(pfd.getFileDescriptor());
+//                outStream.write(data[0]);
+                outStream.write(data);
+                outStream.close();
+                pfd.close();
+                resolver.update(uri, values, null, null);
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+
+        // 파일을 모두 write하고 다른곳에서 사용할 수 있도록 0으로 업데이트를 해줍니다.
+        values.clear();
+        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+        values.put(MediaStore.Images.Media.IS_PENDING, 0);
+        resolver.update(uri, values, null, null);
+
+//          //      For deletion, use:
+//                getContentResolver().delete(uriOfMediaFileDeteled, null, null);
+
+        Log.d("직접사진기", "저장됨: " + data.length + " to "
+                + outputFile
+                + "\n" + values.getAsString(MediaStore.Images.Media.DATE_TAKEN));
+
+
+    }
+
+     /**
      * 안드로이드 디바이스 방향에 맞는 카메라 프리뷰를 화면에 보여주기 위해 계산합니다.
      */
     private static int calculatePreviewOrientation(Camera.CameraInfo info, int rotation) {

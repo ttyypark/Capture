@@ -18,8 +18,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:transitionName="transition" />
-<!--        app:srcCompat="@android:drawable/presence_video_busy" />-->
+        android:transitionName="transition"
+        app:srcCompat="@android:drawable/presence_video_busy" />
     <!--    app:srcCompat="@drawable/image1" />-->
 
     <TextView

@@ -8,6 +8,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.provider.BaseColumns;
 import android.provider.MediaStore;
 import android.text.TextUtils;
@@ -24,11 +26,15 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHolder> {
     public interface onItemClickListener{
-        void onItemClicked(PhotoItem item);
+        void onItemClicked(PhotoItem item, View view);
     }
     private onItemClickListener mListener;
     private String TAG = "포토어댑터";
@@ -82,15 +88,15 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
                 .inflate(itemLayout, parent, false);
 //                .inflate(R.layout.photo_item, parent, false);
         final PhotoViewHolder viewHolder = new PhotoViewHolder(view);
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if(mListener != null){
-                        final PhotoItem item = mPhotoList.get(viewHolder.getAdapterPosition());
-                        mListener.onItemClicked(item);
-                    }
+        view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mListener != null){
+                    final PhotoItem item = mPhotoList.get(viewHolder.getAdapterPosition());
+                    mListener.onItemClicked(item, v);
                 }
-            });
+            }
+        });
         return viewHolder;
     }
 
@@ -107,19 +113,8 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
                 .centerCrop()
 //                .crossFade()
                 .into(holder.mImageView);
-        holder.mTxtTitle.setText(R.string.tempTitle);
-
-//        final MediaMetadataRetriever retriever;
-//        try {
-//            retriever = new MediaMetadataRetriever();
-//            retriever.setDataSource(mContext, mUri);
-//            PhotoItem photoItem = PhotoItem.bindRetriever(retriever);
-//            holder.setPhotoItem(photoItem);
-//        } catch (Exception e) {
-//            Log.d(TAG, "Retriever 오류! ");
-//            e.printStackTrace();
-//        }
-
+        holder.mTxtTitle.setText(item.mDATE_MODIFIED);
+//        holder.mTxtTitle.setText(item.mDate);
 
 
 //        holder.itemView.setOnClickListener(new View.OnClickListener() {
@@ -127,7 +122,7 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
 //            public void onClick(View v) {
 //                if(mListener != null){
 ////                    final PhotoItem item = mItems.get(holder.getAdapterPosition());
-//                    mListener.onItemClicked(item);
+//                    mListener.onItemClicked(item, v);
 //                }
 //            }
 //        });
@@ -139,17 +134,12 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
         public RelativeLayout layoutSelect;
         private TextView mTxtTitle;
 
-//            private View mView;
-//            private int mPosition;
-//            private onItemClickListener listener;
-
         // TODO: 2020-07-16
         // viewholder 재사용
 
         public PhotoViewHolder(@NonNull View itemView) {
             super(itemView);
 
-//                mView = itemView;
             mImageView = itemView.findViewById(R.id.imagephotoView);
             mTxtTitle = itemView.findViewById(R.id.txt_title);
 
@@ -181,30 +171,43 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
         Uri uri;
         String[] projection;
 
-//        uri = android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
         projection = new String[]{
                 MediaStore.MediaColumns.DATA,
                 MediaStore.MediaColumns.DATE_ADDED,
                 MediaStore.MediaColumns.DISPLAY_NAME};
-//      uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+        uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
 //      projection = new String[]{MediaStore.Video.Media._ID, MediaStore.Video.Media.DISPLAY_NAME, MediaStore.Video.Media.DATA};
 
         Cursor cursor = mContext.getContentResolver()
                 .query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,   // uri ?? 위와 비교
-                null, null, null, MediaStore.MediaColumns.DATE_ADDED + " desc");
+                null, null, null, MediaStore.MediaColumns.DATE_MODIFIED + " desc");
         int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
+//        int dateIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_ADDED);
 
         while (cursor.moveToNext())
         {
-//            uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-//                    cursor.getLong(
-//                    cursor.getColumnIndexOrThrow(BaseColumns._ID)));
-//            photoList.add(uri);
-
             String absolutePathOfImage = cursor.getString(columnIndex);
-            PhotoItem photoItem = new PhotoItem(absolutePathOfImage, false);
+
+            long Sdate = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN));
+            String mDate;
+//            if( Sdate != 0 ) {    // DATE_TAKEN 이 없는 경우 1970.0.0 ?
+                mDate = new SimpleDateFormat("yyyy.MM.dd", Locale.KOREA).format(new Date(Sdate));
+//            } else {
+//                mDate = "Title";
+//            }
+            uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    cursor.getLong(cursor.getColumnIndexOrThrow(BaseColumns._ID)));
+
+            PhotoItem photoItem = new PhotoItem(absolutePathOfImage, mDate, false, uri);
+            photoItem.mDISPLAY_NAME = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME));
+            photoItem.mCONTENT_TYPE = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.MIME_TYPE));
+            photoItem.mDATE_MODIFIED = new SimpleDateFormat("yyyy.MM.dd", Locale.KOREA)
+                .format(new Date(cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_MODIFIED))*1000));
+            photoItem.mRELATIVE_PATH = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.RELATIVE_PATH));
+            photoItem.mDATA = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA));
+
             photoList.add(photoItem);
-            Log.i(TAG, "Path : " + absolutePathOfImage + "");
+//            Log.i(TAG, "Path : " + uri + mDate + "*" + Sdate);
 
 //            if (!TextUtils.isEmpty(absolutePathOfImage))
 //            {
@@ -220,18 +223,61 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
         return photoList;
     }
 
-    public static class PhotoItem {
+    public static class PhotoItem implements Serializable, Parcelable {
         public String imgPath;
+        public String mDate;
         private boolean selected;
-        //        public Bitmap mBitmap;
+        public Uri mUri;
 
-        public PhotoItem(String imgPath, boolean selected) {
-            this.imgPath = imgPath;
-            this.selected = selected;
+        public String mDISPLAY_NAME;
+        public String mCONTENT_TYPE;
+        public String mDATE_MODIFIED;
+        public String mRELATIVE_PATH;
+        public String mDATA;
+
+
+        public PhotoItem(){
         }
+
+        public PhotoItem(String imgPath, String date, boolean selected, Uri uri) {
+            this.imgPath = imgPath;
+            this.mDate = date;
+            this.selected = selected;
+            this.mUri = uri;
+        }
+
+// Parcelable 로 만들기 -----
+        protected PhotoItem(Parcel in) {
+            imgPath = in.readString();
+            mDate = in.readString();
+            selected = in.readByte() != 0;
+            mUri = in.readParcelable(Uri.class.getClassLoader());
+            mDISPLAY_NAME = in.readString();
+            mCONTENT_TYPE = in.readString();
+            mDATE_MODIFIED = in.readString();
+            mRELATIVE_PATH = in.readString();
+            mDATA = in.readString();
+        }
+
+        public static final Creator<PhotoItem> CREATOR = new Creator<PhotoItem>() {
+            @Override
+            public PhotoItem createFromParcel(Parcel in) {
+                return new PhotoItem(in);
+            }
+
+            @Override
+            public PhotoItem[] newArray(int size) {
+                return new PhotoItem[size];
+            }
+        };
+// Parcelable 로 만들기 -----
 
         public String getImgPath() {
             return imgPath;
+        }
+
+        public Uri getUri() {
+            return mUri;
         }
 
         public void setImgPath(String imgPath) {
@@ -246,22 +292,25 @@ public class PhotoAdapter extends RecyclerView.Adapter<PhotoAdapter.PhotoViewHol
             this.selected = selected;
         }
 
-//        public static PhotoItem bindRetriever(MediaMetadataRetriever retriever) {
-//
-//            Log.e("포토 바인드", "bindRetriever" + "");
-//
-//            PhotoItem photoItem = new PhotoItem();
-//            Bitmap bitmap;
-//            byte[] albumImage = retriever.getEmbeddedPicture();
-//
-//            if(albumImage == null) {
-//                bitmap = BitmapFactory.decodeResource(Resources.getSystem(),  R.drawable.snow);
-//            } else {
-//                bitmap = BitmapFactory.decodeByteArray(albumImage, 0, albumImage.length);
-//            }
-//
-//            photoItem.mBitmap = bitmap;
-//            return photoItem;
-//        }
+// Parcelable 로 만들기 -----
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeString(imgPath);
+            dest.writeString(mDate);
+            dest.writeByte((byte) (selected ? 1 : 0));
+            dest.writeParcelable(mUri, flags);
+            dest.writeString(mDISPLAY_NAME);
+            dest.writeString(mCONTENT_TYPE);
+            dest.writeString(mDATE_MODIFIED);
+            dest.writeString(mRELATIVE_PATH);
+            dest.writeString(mDATA);
+        }
+// Parcelable 로 만들기 -----
+
     }
 }
