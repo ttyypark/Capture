@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:paddingTop="16dp" >
+
+    <!--    <TextView-->
+    <!--        android:id="@+id/textviewLogo"-->
+    <!--        android:layout_width="150dp"-->
+    <!--        android:layout_height="40dp"-->
+    <!--        android:layout_centerHorizontal="true"-->
+    <!--        android:layout_marginBottom="16dp"-->
+    <!--        android:textSize="20sp"-->
+    <!--        android:text="사진정보" />-->
+
+    <TextView
+        android:id="@+id/displayname"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/textviewLogo"
+        android:text="DISPLAY_NAME"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    <EditText
+        android:id="@+id/edit_displayname"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:layout_marginBottom="10dp"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:layout_below="@+id/displayname">
+
+        <requestFocus />
+    </EditText>
+
+    <TextView
+        android:id="@+id/contenttype"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="CONTENT_TYPE"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:layout_below="@+id/edit_displayname" />
+
+    <EditText
+        android:id="@+id/edit_contenttype"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:layout_marginBottom="10dp"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:layout_below="@+id/contenttype" />
+
+    <TextView
+        android:id="@+id/modified"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="DATE_MODIFIED"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:layout_below="@+id/edit_contenttype" />
+
+    <EditText
+        android:id="@+id/edit_modified"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:layout_marginBottom="10dp"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:layout_below="@+id/modified" />
+
+    <TextView
+        android:id="@+id/relative"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="RELATIVE_PATH"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:layout_below="@+id/edit_modified" />
+
+    <EditText
+        android:id="@+id/edit_relative"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:layout_marginBottom="10dp"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:layout_below="@+id/relative" />
+
+    <TextView
+        android:id="@+id/pathdata"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="DATA(actual path)"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:layout_below="@+id/edit_relative" />
+
+    <EditText
+        android:id="@+id/edit_pathdata"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:layout_marginBottom="10dp"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:layout_below="@+id/pathdata" />
+
+    <TextView
+        android:id="@+id/datetaken"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="촬영일"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:layout_below="@+id/edit_pathdata" />
+
+    <EditText
+        android:id="@+id/edit_datetaken"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:layout_marginBottom="10dp"
+        android:textAppearance="?android:attr/textAppearanceSmall"
+        android:layout_below="@+id/datetaken" />
+
+    <!--    <Button-->
+    <!--        android:id="@+id/buttonSubmit"-->
+    <!--        android:layout_width="100dp"-->
+    <!--        android:layout_height="wrap_content"-->
+    <!--        android:layout_below="@+id/edit_datetaken"-->
+    <!--        android:layout_marginBottom="20dp"-->
+    <!--        android:text="수정" />-->
+</LinearLayout>
