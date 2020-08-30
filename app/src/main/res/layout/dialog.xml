@@ -128,5 +128,5 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/edit_datetaken"
         android:layout_marginBottom="20dp"
-        android:text="수정" />
+        android:text="@string/edit" />
 </RelativeLayout>
