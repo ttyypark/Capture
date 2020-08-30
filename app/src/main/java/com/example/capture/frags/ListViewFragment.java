@@ -19,7 +19,7 @@ import java.io.Serializable;
 import java.util.List;
 
 
-public class ListViewFragment extends Fragment {
+public class ListViewFragment extends Fragment {        // ** uses unchecked or unsafe operations
 
     public ListViewFragment() {
     }
@@ -48,7 +48,8 @@ public class ListViewFragment extends Fragment {
         ListView listView = (ListView) view.findViewById(R.id.list_view);
         Bundle bundle = getArguments();
         assert bundle != null;
-        List<String> mData = (List<String>) bundle.getSerializable("data");
+        List<String> mData;
+        mData = (List<String>) bundle.getSerializable("data");
         MyAdapter adapter = new MyAdapter(mData);
         listView.setAdapter(adapter);
     }
