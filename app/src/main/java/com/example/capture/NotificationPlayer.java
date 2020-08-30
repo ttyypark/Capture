@@ -43,33 +43,31 @@ public class NotificationPlayer {
     @SuppressLint("StaticFieldLeak")
     public void updateNotificationPlayer() {
         cancel();
-//        mNotificationManagerBuilder = new NotificationManagerBuilder();
-//        mNotificationManagerBuilder.execute();
-
         // ==================================== NotificationManagerBuilder() 없이 하나로 실행..
         new AsyncTask<Void, Void, Notification>() {
             NotificationCompat.Builder mNotificationBuilder;
 
             @Override
             protected Notification doInBackground(Void... params) {
+//   bitmap largeIcon 만드는 법
+//                Uri albumArtUri = ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), mService.mAudioItem.mAlbumId);
 //                Bitmap largIcon = null;
-//                Uri albumArtUri = ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), mService.getAudioItem().mAlbumId);
 //                try {
-//                    largIcon = Picasso.get().load(albumArtUri).get();
+//                    largIcon = Picasso.with(mService).load(albumArtUri).get();
 //                } catch (IOException e) {
 //                    e.printStackTrace();
 //                }
-                Bitmap largIcon = mService.getAudioItem().mBitmap;
+                Bitmap largIcon = mService.mAudioItem.mBitmap;
                 if(largIcon == null) {
                     largIcon = BitmapFactory.decodeResource(mService.getApplicationContext().getResources(),
                     R.drawable.snow);  //?
                 }
 
                 Intent mainActivity = new Intent(mService, MusicPlayerActivity.class);
-                Intent actionTogglePlay = new Intent(mService.TOGGLE_PLAY);
-                Intent actionForward = new Intent(mService.FORWARD);
-                Intent actionRewind = new Intent(mService.REWIND);
-                Intent actionClose = new Intent(mService.CLOSE);
+                Intent actionTogglePlay = new Intent(MusicService.TOGGLE_PLAY);
+                Intent actionForward = new Intent(MusicService.FORWARD);
+                Intent actionRewind = new Intent(MusicService.REWIND);
+                Intent actionClose = new Intent(MusicService.CLOSE);
                 PendingIntent togglePlay = PendingIntent.getService(mService, 0, actionTogglePlay, 0);
                 PendingIntent forward = PendingIntent.getService(mService, 0, actionForward, 0);
                 PendingIntent rewind = PendingIntent.getService(mService, 0, actionRewind, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -80,8 +78,8 @@ public class NotificationPlayer {
                 NotificationManager manager = (NotificationManager) mService.getSystemService(Context.NOTIFICATION_SERVICE);
                 mNotificationBuilder = new NotificationCompat.Builder(mService, CHANNEL_ID);
                 mNotificationBuilder
-                        .setContentTitle(mService.getAudioItem().mTitle)
-                        .setContentText(mService.getAudioItem().mArtist)
+                        .setContentTitle(mService.mAudioItem.mTitle)
+                        .setContentText(mService.mAudioItem.mArtist)
                         //.setStyle(new NotificationCompat.BigTextStyle().bigText("더 많은 내용을 보여줘야 하는 경우..."))
                         .setLargeIcon(largIcon)
                         .setContentIntent(main)
@@ -142,6 +140,7 @@ public class NotificationPlayer {
         }
     }
 
+// ========사용하지 않음
     @SuppressLint("StaticFieldLeak")
     private class NotificationManagerBuilder extends AsyncTask<Void, Void, Notification> {
         private RemoteViews mRemoteViews;
@@ -231,8 +230,7 @@ public class NotificationPlayer {
             //---------------------------------
             mNotificationBuilder.setPriority(Notification.PRIORITY_DEFAULT);
 
-            Notification notification = mNotificationBuilder.build();
-            return  notification;
+            return mNotificationBuilder.build();
         }
 
         @Override
@@ -259,10 +257,10 @@ public class NotificationPlayer {
 
         private RemoteViews createRemoteView(int layoutId) {
             RemoteViews remoteView = new RemoteViews(mService.getPackageName(), layoutId);
-            Intent actionTogglePlay = new Intent(mService.TOGGLE_PLAY);
-            Intent actionForward = new Intent(mService.FORWARD);
-            Intent actionRewind = new Intent(mService.REWIND);
-            Intent actionClose = new Intent(mService.CLOSE);
+            Intent actionTogglePlay = new Intent(MusicService.TOGGLE_PLAY);
+            Intent actionForward = new Intent(MusicService.FORWARD);
+            Intent actionRewind = new Intent(MusicService.REWIND);
+            Intent actionClose = new Intent(MusicService.CLOSE);
             PendingIntent togglePlay = PendingIntent.getService(mService, 0, actionTogglePlay, 0);
             PendingIntent forward = PendingIntent.getService(mService, 0, actionForward, 0);
             PendingIntent rewind = PendingIntent.getService(mService, 0, actionRewind, 0);
@@ -282,28 +280,21 @@ public class NotificationPlayer {
                 remoteViews.setImageViewResource(R.id.btn_play_pause, R.drawable.play);
             }
 
-            String title = mService.getAudioItem().mTitle;
-            String artist = mService.getAudioItem().mArtist;
-            Bitmap bitmap = mService.getAudioItem().mBitmap;
+            String title = mService.mAudioItem.mTitle;
+            String artist = mService.mAudioItem.mArtist;
+            Bitmap bitmap = mService.mAudioItem.mBitmap;
 
             remoteViews.setTextViewText(R.id.title_text, title);
             remoteViews.setTextViewText(R.id.artist_text, artist);
-//            Uri albumArtUri = ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), mService.getAudioItem().mAlbumId);
-            if(bitmap != null) {
-//                Picasso.get().load(albumArtUri).error(R.drawable.musiccircle).into(remoteViews, R.id.img_albumart, NOTIFICATION_PLAYER_ID, notification);
-                remoteViews.setImageViewBitmap(R.id.album_image, bitmap);
-            } else{
-                remoteViews.setImageViewResource(R.id.album_image, R.drawable.music_circle);
-            }
+            Uri albumArtUri = ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), mService.mAudioItem.mAlbumId);
+            Picasso.get().load(albumArtUri).error(R.drawable.musiccircle).into(remoteViews, R.id.img_albumart, NOTIFICATION_PLAYER_ID, notification);
+//            if(bitmap != null) {
+//                remoteViews.setImageViewBitmap(R.id.album_image, bitmap);
+//            } else{
+//                remoteViews.setImageViewResource(R.id.album_image, R.drawable.music_circle);
+//            }
         }
     }
-
-//    public class CommandActions {
-//        public final static String REWIND = "REWIND";
-//        public final static String TOGGLE_PLAY = "TOGGLE_PLAY";
-//        public final static String FORWARD = "FORWARD";
-//        public final static String CLOSE = "CLOSE";
-//    }
 
 }
 
