@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.capture">
+    package="com.example.mediaplayer">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -17,19 +17,19 @@
 
 <!--    Scoped mode 사용: requestLegacyExternalStorage="true"-->
     <application
-        android:name=".MusicApplication"
+        android:name="com.example.mediaplayer.MusicApplication"
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/play_box_multiple"
         android:label="@string/app_name"
         android:networkSecurityConfig="@xml/network_security_config"
         android:requestLegacyExternalStorage="true"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/play_box_multiple"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:targetApi="q"
         android:fullBackupContent="@xml/backup_descriptor">
         <receiver
-            android:name=".CaptureWidgetTest"
+            android:name="com.example.mediaplayer.CaptureWidgetTest"
             android:label="Capture Widget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -41,7 +41,7 @@
                 android:resource="@xml/capture_widget_info" />
         </receiver>
         <activity
-            android:name=".CaptureWidgetConfigure"
+            android:name="com.example.mediaplayer.CaptureWidgetConfigure"
             android:excludeFromRecents="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
@@ -49,7 +49,7 @@
         </activity>
 
         <receiver
-            android:name=".CaptureWidgetProvider"
+            android:name="com.example.mediaplayer.CaptureWidgetProvider"
             android:label="4x1 Widget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -62,26 +62,26 @@
                 android:resource="@xml/appwidget_4x1" />
         </receiver>
 
-        <activity android:name=".CaptureWidgetTestConfigure">
+        <activity android:name="com.example.mediaplayer.CaptureWidgetTestConfigure">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
         </activity>
 
-        <activity android:name=".VideoPlayerActivity" />
+        <activity android:name="com.example.mediaplayer.VideoPlayerActivity" />
         <activity
-            android:name=".CameraActivity"
+            android:name="com.example.mediaplayer.CameraActivity"
             android:label="@string/title_activity_camera_photo"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".MusicPlayerActivity" />
-        <activity android:name=".CameraActionActivity" />
-        <activity android:name=".AudioRecordActivity" />
-        <activity android:name=".PhotoGalleryActivity" />
-        <activity android:name=".PhotoViewActivity" />
+        <activity android:name="com.example.mediaplayer.MusicPlayerActivity" />
+        <activity android:name="com.example.mediaplayer.CameraActionActivity" />
+        <activity android:name="com.example.mediaplayer.AudioRecordActivity" />
+        <activity android:name="com.example.mediaplayer.PhotoGalleryActivity" />
+        <activity android:name="com.example.mediaplayer.PhotoViewActivity" />
 <!--        <activity android:name=".PhotosActivity" />-->
 <!--        PhotoFragment, PhotoViewFragment와 같이 사용되지 않음 -->
 
-        <activity android:name=".MainActivity">
+        <activity android:name="com.example.mediaplayer.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -90,7 +90,7 @@
         </activity>
 
         <service
-            android:name=".services.MusicService"
+            android:name="com.example.mediaplayer.services.MusicService"
             android:enabled="true"
             android:exported="true"
             android:permission="TODO"
@@ -105,7 +105,7 @@
 
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.example.capture"
+            android:authorities="com.example.mediaplayer"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:configure="com.example.capture.CaptureWidgetTestConfigure"
+    android:configure="com.example.mediaplayer.CaptureWidgetTestConfigure"
     android:initialKeyguardLayout="@layout/capture_widget_test"
     android:initialLayout="@layout/capture_widget_test"
     android:minWidth="140dp"

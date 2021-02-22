@@ -1,2 +1,2 @@
-rootProject.name='Capture'
+rootProject.name='MediaPlayer'
 include ':app'
