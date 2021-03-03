@@ -41,7 +41,8 @@ class AudioRecordActivity constructor() : AppCompatActivity(), View.OnClickListe
     private var mStartPlaying: Boolean = true
     private var rButton: Button? = null
     private var pButton: Button? = null
-    public override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
             REQUEST_RECORD_AUDIO_PERMISSION -> permissionToRecordAccepted = grantResults.get(0) == PackageManager.PERMISSION_GRANTED
@@ -51,20 +52,20 @@ class AudioRecordActivity constructor() : AppCompatActivity(), View.OnClickListe
 
     internal inner class RecordButton constructor(ctx: Context?) : AppCompatButton((ctx)!!) {
         var mStartRecording: Boolean = true
-        var clicker: OnClickListener = object : OnClickListener {
-            public override fun onClick(v: View) {
+        private var clicker: OnClickListener = object : OnClickListener {
+            override fun onClick(v: View) {
                 onRecord(mStartRecording)
                 if (mStartRecording) {
-                    setText("Stop recording")
+                    text = "Stop recording"
                 } else {
-                    setText("Start recording")
+                    text = "Start recording"
                 }
                 mStartRecording = !mStartRecording
             }
         }
 
         init {
-            setText("Start recording")
+            text = "Start recording"
             setOnClickListener(clicker)
         }
     }
@@ -99,6 +100,7 @@ class AudioRecordActivity constructor() : AppCompatActivity(), View.OnClickListe
         recorder!!.start()
     }
 
+    @Suppress("DEPRECATION")
     private fun stopRecording() {
         recorder!!.stop()
         recorder!!.release()
@@ -122,10 +124,10 @@ class AudioRecordActivity constructor() : AppCompatActivity(), View.OnClickListe
         private var clicker: OnClickListener = object : OnClickListener {
             override fun onClick(v: View) {
                 onPlay(mStartPlaying)
-                if (mStartPlaying) {
-                    text = "Stop playing"
+                text = if (mStartPlaying) {
+                    "Stop playing"
                 } else {
-                    text = "Start playing"
+                    "Start playing"
                 }
                 mStartPlaying = !mStartPlaying
             }
@@ -174,6 +176,7 @@ class AudioRecordActivity constructor() : AppCompatActivity(), View.OnClickListe
     }
 
     // --------------------------------------------------------------- to
+    @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         getInstance = this
@@ -213,10 +216,6 @@ class AudioRecordActivity constructor() : AppCompatActivity(), View.OnClickListe
         findViewById<View>((R.id.music2)).setOnClickListener(this)
         findViewById<View>((R.id.music3)).setOnClickListener(this)
         findViewById<View>((R.id.music4)).setOnClickListener(this)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
     }
 
     override fun onClick(v: View) {
@@ -260,12 +259,13 @@ class AudioRecordActivity constructor() : AppCompatActivity(), View.OnClickListe
         Toast.makeText(context, "녹음 종료됨", Toast.LENGTH_SHORT).show()
     }
 
+    @Suppress("DEPRECATION")
     fun startRecord() {
         val sdcard: File = Environment.getExternalStorageDirectory()
         val file: File = File(sdcard, "recorded.mp4")
-        fileName = file.getAbsolutePath()
+        fileName = file.absolutePath
         if (recorder == null) recorder = MediaRecorder()
-        val values: ContentValues = ContentValues(10)
+        val values = ContentValues(10)
         values.put(MediaStore.MediaColumns.TITLE, "Recorded")
         values.put(MediaStore.Audio.Media.ALBUM, "Audio Album")
         values.put(MediaStore.Audio.Media.ARTIST, "Mike")

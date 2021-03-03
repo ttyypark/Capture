@@ -1,5 +1,6 @@
 package com.example.mediaplayer
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -20,12 +21,15 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.FileProvider
+import androidx.core.content.FileProvider.getUriForFile
+import androidx.databinding.DataBindingUtil
+import com.example.mediaplayer.databinding.ActivityCameraBinding
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
-class CameraActivity constructor() : AppCompatActivity(), View.OnClickListener {
+class CameraActivity : AppCompatActivity(), View.OnClickListener {
     private var photoFile: File? = null
     private var photoUri: Uri? = null
 
@@ -33,25 +37,50 @@ class CameraActivity constructor() : AppCompatActivity(), View.OnClickListener {
     private val surfaceView: SurfaceView? = null
     private val holder: SurfaceHolder? = null
     private var context: Context? = null
+    private lateinit var cameraBinding: ActivityCameraBinding
+
+    @Suppress("DEPRECATION")
+    companion object {
+        private const val REQUEST_GIVEN_IMAGE_CAPTURE: Int = 101
+        private const val REQUEST_MY_IMAGE_CAPTURE: Int = 102
+        private const val TAG: String = "카메라"
+        private const val CAMERA_FACING: Int = CameraInfo.CAMERA_FACING_BACK // Camera.CameraInfo.CAMERA_FACING_FRONT
+        private val camera: Camera? = null
+        var currentPhotoPath: String? = null
+
+        @SuppressLint("StaticFieldLeak")
+        var imageView: ImageView? = null
+        @SuppressLint("StaticFieldLeak")
+        var getInstance: CameraActivity? = null
+
+        fun getCamera(): Camera? {
+            return camera
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_camera)
+//        setContentView(R.layout.activity_camera)
+        cameraBinding = DataBindingUtil.setContentView(this, R.layout.activity_camera)
+
         getInstance = this
         context = applicationContext
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
-        imageView = findViewById(R.id.imagePhotoView)
-        findViewById<View>(R.id.button).setOnClickListener(this)
-        findViewById<View>(R.id.button2).setOnClickListener(this)
-        findViewById<View>(R.id.goto_gallery).setOnClickListener(this)
+        imageView = cameraBinding.imagePhotoView
+
+//        findViewById<View>(R.id.button).setOnClickListener(this)
+        cameraBinding.takePicture.setOnClickListener(this)
+        cameraBinding.imageCapture.setOnClickListener(this)
+        cameraBinding.gotoGallery.setOnClickListener(this)
     }
 
     override fun onClick(v: View) {
         when (v.id) {
-            R.id.button -> takePicture()
-            R.id.button2 -> {
+            R.id.take_picture -> takePicture()
+            R.id.image_capture -> {
                 val intent = Intent(applicationContext, CameraActionActivity::class.java)
-                startActivityForResult(intent, REQUEST_MY_IMAGE_CATURE)
+                startActivityForResult(intent, REQUEST_MY_IMAGE_CAPTURE)
             }
             R.id.goto_gallery -> {
                 val galleryIntent = Intent(applicationContext, PhotoGalleryActivity::class.java)
@@ -60,6 +89,8 @@ class CameraActivity constructor() : AppCompatActivity(), View.OnClickListener {
         }
     }
 
+    @Suppress("UNREACHABLE_CODE", "CAST_NEVER_SUCCEEDS")
+    @SuppressLint("QueryPermissionsNeeded")
     private fun takePicture() {
         val state: String = Environment.getExternalStorageState()
         if ((Environment.MEDIA_MOUNTED == state)) {
@@ -77,13 +108,14 @@ class CameraActivity constructor() : AppCompatActivity(), View.OnClickListener {
                     //                    finish();
                 }
                 if (photoFile != null) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {     // 임시화일
-                        photoUri = FileProvider.getUriForFile(this,
-                                packageName,  //                            "com.example.mycapture.provider",
-                                photoFile as Nothing)
+                    photoUri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {     // 임시화일
+                        getUriForFile(this,
+                                packageName,  //             "com.example.mycapture.provider",
+                                photoFile!!)
                     } else {
-                        photoUri = Uri.fromFile(photoFile)
+                        Uri.fromFile(photoFile)
                     }
+
                     // content://com.example.mycapture/external_file/Pictures/JPEG_20200208_031050_7007720671382549777.jpg
                     // paths.xml 에 있는 <external-files-path
                     //        name="external_file"
@@ -96,9 +128,9 @@ class CameraActivity constructor() : AppCompatActivity(), View.OnClickListener {
 //                    intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile)); // 추가
                     intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION) // set flag to permission
                     intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) // set flag to permission
-                    grantUriPermission(getPackageName(), photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
+                    grantUriPermission(packageName, photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
                             Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    startActivityForResult(intent, REQUEST_GIVEN_IMAGE_CATURE)
+                    startActivityForResult(intent, REQUEST_GIVEN_IMAGE_CAPTURE)
                 }
             }
         } else {
@@ -106,15 +138,16 @@ class CameraActivity constructor() : AppCompatActivity(), View.OnClickListener {
         }
     }
 
+    @Suppress("DEPRECATION")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data) // data로 icon 크기 사진 반환
-        if (requestCode == REQUEST_GIVEN_IMAGE_CATURE && resultCode == RESULT_OK) {
+        if (requestCode == REQUEST_GIVEN_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             // 갤러리에 반영
-            val mediaScanIntent: Intent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)
-            mediaScanIntent.setData(Uri.fromFile(photoFile))
+            val mediaScanIntent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE)
+            mediaScanIntent.data = Uri.fromFile(photoFile)
             //            getContext().sendBroadcast(mediaScanIntent);
             context!!.sendBroadcast(mediaScanIntent)
-            Log.d("사진앱", "사진 저장됨 : " + currentPhotoPath)
+            Log.d("사진앱", "사진 저장됨 : $currentPhotoPath")
             setImage()
 
 //            // Uri 로 받음
@@ -124,7 +157,7 @@ class CameraActivity constructor() : AppCompatActivity(), View.OnClickListener {
 //            Bundle extras = data.getExtras();
 //            Bitmap imageBitmap = (Bitmap) extras.get("data");
 //            imageView.setImageBitmap(imageBitmap);
-        } else if (requestCode == REQUEST_MY_IMAGE_CATURE && resultCode == RESULT_OK) {
+        } else if (requestCode == REQUEST_MY_IMAGE_CAPTURE && resultCode == RESULT_OK) {
         }
     }
 
@@ -135,12 +168,13 @@ class CameraActivity constructor() : AppCompatActivity(), View.OnClickListener {
         imageView!!.setImageBitmap(bitmap)
     }
 
+    @Suppress("DEPRECATION")
     @Throws(IOException::class)
     fun createImageFile(): File {
         val image: File
         // create an image file name
         val timeStamp: String = SimpleDateFormat("yyMMdd_HHmmss", Locale.KOREA).format(Date())
-        val imageFileName: String = "JPEG_" + timeStamp
+        val imageFileName: String = "JPEG_$timeStamp"
 
 //        //앱 전용 화일 directory       내부저장소
 //        File storageDir = context.getFilesDir();     // OK
@@ -155,7 +189,7 @@ class CameraActivity constructor() : AppCompatActivity(), View.OnClickListener {
 //        android:requestLegacyExternalStorage="true"
 // ------------------------------------------------------------------------------
         // 이미지가 저장될 폴더 이름 ( camera )
-        val storageDir: File = File(Environment.getExternalStorageDirectory().toString() + "/camtest")
+        val storageDir = File(Environment.getExternalStorageDirectory().toString() + "/camtest")
 
 //        // 특정 폴더 아닌 메모리 최상에 위치
 //        File storageDir = Environment.getExternalStorageDirectory();
@@ -166,14 +200,14 @@ class CameraActivity constructor() : AppCompatActivity(), View.OnClickListener {
                 Log.e("Error : ", "storageDir.mkdirs ")
             }
         }
-        image = File(storageDir, imageFileName + ".jpg")
+        image = File(storageDir, "$imageFileName.jpg")
         //        image = File.createTempFile(
 //                imageFileName, /* prefix */
 //                ".jpg",   /* suffix */
 //                storageDir);   /* directory */
 
         // Save a file: path for use with ACTION_VIEW intents
-        currentPhotoPath = image.getAbsolutePath()
+        currentPhotoPath = image.absolutePath
 
 //        image.deleteOnExit();   // 종료와 동시 삭제됨.
         return image
@@ -182,21 +216,7 @@ class CameraActivity constructor() : AppCompatActivity(), View.OnClickListener {
     @Throws(IOException::class)
     fun createFileName(): String {
         val timeStamp: String = SimpleDateFormat("yyMMdd_HHmmss", Locale.KOREA).format(Date())
-        val imageFileName: String = "JPEG_" + timeStamp + ".jpg"
-        return imageFileName
+        return "JPEG_$timeStamp.jpg"
     }
 
-    companion object {
-        private val REQUEST_GIVEN_IMAGE_CATURE: Int = 101
-        private val REQUEST_MY_IMAGE_CATURE: Int = 102
-        private val TAG: String = "카메라"
-        private val CAMERA_FACING: Int = CameraInfo.CAMERA_FACING_BACK // Camera.CameraInfo.CAMERA_FACING_FRONT
-        private val camera: Camera? = null
-        var getInstance: CameraActivity? = null
-        var imageView: ImageView? = null
-        var currentPhotoPath: String? = null
-        fun getCamera(): Camera? {
-            return camera
-        }
-    }
 }

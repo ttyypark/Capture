@@ -9,7 +9,7 @@ import androidx.viewpager.widget.ViewPager
 import com.example.mediaplayer.frags.PhotoFragment
 import com.example.mediaplayer.frags.PhotoViewFragment
 
-class PhotosActivity constructor() : AppCompatActivity(), FragmentCallback {
+class PhotosActivity : AppCompatActivity(), FragmentCallback {
     private var mPhotoFragment: PhotoFragment? = null
     private var mPhotoViewFragment: PhotoViewFragment? = null
     private lateinit var viewPager: ViewPager
@@ -33,16 +33,16 @@ class PhotosActivity constructor() : AppCompatActivity(), FragmentCallback {
         viewPager.currentItem = 0
     }
 
-    public override fun setPage(pageNum: Int) {
-        viewPager!!.currentItem = pageNum
+    override fun setPage(pageNum: Int) {
+        viewPager.currentItem = pageNum
     }
 
     private inner class PhotoPagerAdapter constructor(fm: FragmentManager) : FragmentPagerAdapter(fm) {
-        public override fun getCount(): Int {
+        override fun getCount(): Int {
             return 2
         }
 
-        public override fun getItem(position: Int): Fragment {
+        override fun getItem(position: Int): Fragment {
             when (position) {
                 0 -> return (mPhotoFragment)!!
                 1 -> return (mPhotoViewFragment)!!
@@ -50,13 +50,14 @@ class PhotosActivity constructor() : AppCompatActivity(), FragmentCallback {
             return (mPhotoFragment)!!       //null
         }
 
-        public override fun getPageTitle(position: Int): CharSequence? {
+        override fun getPageTitle(position: Int): CharSequence? {
             when (position) {
                 0 -> return "사진목록"
                 1 -> return "사진보기"
             }
             return null
-        } // *************************************************************************************
+        }
+// *************************************************************************************
         //  recyclerView 의 PhotoFragment 가 안 보이는 이유, onBindViewHolder 가 안되는 이유 !!!!!!
         //  왜 이런 Override 가 있었지?
         //        @Override

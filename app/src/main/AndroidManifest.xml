@@ -4,7 +4,8 @@
     package="com.example.mediaplayer">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.WRITE_CONTACTS" />
@@ -68,7 +69,6 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="com.example.mediaplayer.VideoPlayerActivity" />
         <activity
             android:name="com.example.mediaplayer.CameraActivity"
             android:label="@string/title_activity_camera_photo"
@@ -78,6 +78,7 @@
         <activity android:name="com.example.mediaplayer.AudioRecordActivity" />
         <activity android:name="com.example.mediaplayer.PhotoGalleryActivity" />
         <activity android:name="com.example.mediaplayer.PhotoViewActivity" />
+        <activity android:name="com.example.mediaplayer.VideoPlayerActivity" />
 <!--        <activity android:name=".PhotosActivity" />-->
 <!--        PhotoFragment, PhotoViewFragment와 같이 사용되지 않음 -->
 

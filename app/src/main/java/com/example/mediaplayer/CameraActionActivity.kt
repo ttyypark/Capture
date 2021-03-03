@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.example.mediaplayer
 
 import android.annotation.SuppressLint
@@ -17,6 +19,8 @@ class CameraActionActivity : AppCompatActivity() {
     private lateinit var surfaceView: SurfaceView
     private val callback: PictureCallback? = null
     private val holder: SurfaceHolder? = null
+
+    @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -49,6 +53,7 @@ class CameraActionActivity : AppCompatActivity() {
         mCameraPreview = CameraPreview(this, this, CAMERA_FACING, surfaceView)
     }
 
+    @Suppress("DEPRECATION")
     companion object {
         @SuppressLint("StaticFieldLeak")
         var mCameraPreview: CameraPreview? = null

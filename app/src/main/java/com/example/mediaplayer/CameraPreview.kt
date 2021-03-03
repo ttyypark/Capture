@@ -1,5 +1,6 @@
 package com.example.mediaplayer
 
+import android.annotation.SuppressLint
 import android.content.*
 import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat
@@ -22,6 +23,7 @@ import java.io.*
 //// camera 예제
 // https://webnautes.tistory.com/822
 //
+@Suppress("DEPRECATION")
 class CameraPreview : ViewGroup, SurfaceHolder.Callback {
     private val TAG: String = "CameraPreview"
     private var mContext: Context? = null
@@ -55,7 +57,7 @@ class CameraPreview : ViewGroup, SurfaceHolder.Callback {
         mCameraID = cameraID
         mSurfaceView = surfaceView
         mContext = context
-        mSurfaceView!!.setVisibility(VISIBLE)
+        mSurfaceView!!.visibility = VISIBLE
         init()
     }
 
@@ -66,7 +68,7 @@ class CameraPreview : ViewGroup, SurfaceHolder.Callback {
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS) // 카메라가 SurfaceView를 독점
     }
 
-    public override fun surfaceCreated(holder: SurfaceHolder) {
+    override fun surfaceCreated(holder: SurfaceHolder) {
         // Open an instance of the camera
         try {
             if (mCamera == null) {
@@ -78,8 +80,8 @@ class CameraPreview : ViewGroup, SurfaceHolder.Callback {
         }
 
         // retrieve camera's info.
-        val cameraInfo: CameraInfo = CameraInfo()
-        Camera.getCameraInfo(mCameraID, cameraInfo)
+        val cameraInfo = CameraInfo()
+        getCameraInfo(mCameraID, cameraInfo)
         mCameraInfo = cameraInfo
         mDisplayOrientation = mActivity!!.windowManager.defaultDisplay.rotation
         val orientation: Int = calculatePreviewOrientation(mCameraInfo, mDisplayOrientation)
@@ -89,13 +91,13 @@ class CameraPreview : ViewGroup, SurfaceHolder.Callback {
         requestLayout()
 
         // 카메라 설정
-        val parameters: Camera.Parameters = mCamera!!.getParameters()
-        val focusModes: List<String> = parameters.getSupportedFocusModes()
-        if (focusModes.contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
+        val parameters: Camera.Parameters = mCamera!!.parameters
+        val focusModes: List<String> = parameters.supportedFocusModes
+        if (focusModes.contains(Parameters.FOCUS_MODE_AUTO)) {
             // set the focus mode
-            parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO)
+            parameters.focusMode = Parameters.FOCUS_MODE_AUTO
             // set Camera parameters
-            mCamera!!.setParameters(parameters)
+            mCamera!!.parameters = parameters
         }
         try {
             mCamera!!.setPreviewDisplay(mHolder)
@@ -109,11 +111,11 @@ class CameraPreview : ViewGroup, SurfaceHolder.Callback {
         }
     }
 
-    public override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
+    override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
 
         // If your preview can change or rotate, take care of those events here.
         // Make sure to stop the preview before resizing or reformatting it.
-        if (mHolder!!.getSurface() == null) {
+        if (mHolder.surface == null) {
             // preview surface does not exist
             Log.d(TAG, "Preview surface does not exist")
             return
@@ -136,7 +138,7 @@ class CameraPreview : ViewGroup, SurfaceHolder.Callback {
         }
     }
 
-    public override fun surfaceDestroyed(holder: SurfaceHolder) {
+    override fun surfaceDestroyed(holder: SurfaceHolder) {
         // Surface will be destroyed when we return, so stop the preview.
         // Release the camera for other applications.
         if (mCamera != null) {
@@ -178,8 +180,8 @@ class CameraPreview : ViewGroup, SurfaceHolder.Callback {
 
     fun imageHandling(data: ByteArray, camera: Camera) {
         //이미지의 너비와 높이 결정
-        val w: Int = camera.getParameters().getPictureSize().width
-        val h: Int = camera.getParameters().getPictureSize().height
+        val w: Int = camera.parameters.pictureSize.width
+        val h: Int = camera.parameters.pictureSize.height
         val orientation: Int = calculatePreviewOrientation(mCameraInfo, mDisplayOrientation)
 
         //byte array를 bitmap으로 변환
@@ -193,7 +195,7 @@ class CameraPreview : ViewGroup, SurfaceHolder.Callback {
         bitmap = Bitmap.createBitmap(bitmap, 0, 0, w, h, matrix, true)
 
         //bitmap을 byte array로 변환
-        val stream: ByteArrayOutputStream = ByteArrayOutputStream()
+        val stream = ByteArrayOutputStream()
         bitmap.compress(CompressFormat.JPEG, 100, stream)
         val currentData: ByteArray = stream.toByteArray()
 
@@ -208,6 +210,7 @@ class CameraPreview : ViewGroup, SurfaceHolder.Callback {
         SaveImageTask().execute(currentData)
     }
 
+    @SuppressLint("StaticFieldLeak")
     private inner class SaveImageTask : AsyncTask<ByteArray?, Void?, Void?>() {
         var outputFile: File? = null
 
@@ -215,7 +218,7 @@ class CameraPreview : ViewGroup, SurfaceHolder.Callback {
         override fun doInBackground(vararg data: ByteArray?): Void? {
 //            FileOutputStream outStream ;
             try {
-                outputFile = CameraActivity.Companion.getInstance!!.createImageFile()
+                outputFile = CameraActivity.getInstance!!.createImageFile()
 //// =============================================================================
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     afterQ(data[0], CameraActivity.getInstance!!.createFileName())
@@ -239,37 +242,36 @@ class CameraPreview : ViewGroup, SurfaceHolder.Callback {
         val resolver: ContentResolver
 
 // Insert my file to MediaStore
-        val values: ContentValues = ContentValues()
+        val values = ContentValues()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             values.put(MediaStore.Audio.Media.RELATIVE_PATH, "Pictures/camtest") // 다른 path..
         }
         values.put(MediaStore.Images.Media.DISPLAY_NAME, outputFile)
         values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
         values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
-        //        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+//        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
 //      file을 write한 다음에 DATE_TAKEN이 설정됨. 그 전에는 null로 setting 됨. IS_PENDING이 1일 경우
         // 파일을 write중이라면 다른곳에서 데이터요구를 무시하겠다는 의미
         values.put(MediaStore.Images.Media.IS_PENDING, 1)
-        resolver = mContext!!.getContentResolver()
+        resolver = mContext!!.contentResolver
         // ContentResolver을 통해 insert를 해주고 해당 insert가 되는 위치의 Uri를 리턴받는다.
         // 이후로는 해당 Uri를 통해 파일 관리를 해줄 수 있다.
         val uri: Uri? = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
 
 //  Uri(item) 위치에 화일 생성
         try {
-            var pfd: ParcelFileDescriptor? = null
             //            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            pfd = resolver.openFileDescriptor((uri)!!, "w", null)
+            val pfd: ParcelFileDescriptor? = resolver.openFileDescriptor((uri)!!, "w", null)
             //            }
             if (pfd == null) {
                 // ...
             } else {
-                outStream = FileOutputStream(pfd.getFileDescriptor())
+                outStream = FileOutputStream(pfd.fileDescriptor)
                 //                outStream.write(data[0]);
-                outStream.write(data)
+                outStream.write(data!!)
                 outStream.close()
                 pfd.close()
-                resolver.update((uri)!!, values, null, null)
+                resolver.update(uri, values, null, null)
             }
         } catch (e: FileNotFoundException) {
             e.printStackTrace()
@@ -295,7 +297,7 @@ class CameraPreview : ViewGroup, SurfaceHolder.Callback {
          * 안드로이드 디바이스 방향에 맞는 카메라 프리뷰를 화면에 보여주기 위해 계산합니다.
          */
         private fun calculatePreviewOrientation(info: CameraInfo?, rotation: Int): Int {
-            var degrees: Int = 0
+            var degrees = 0
             when (rotation) {
                 Surface.ROTATION_0 -> degrees = 0
                 Surface.ROTATION_90 -> degrees = 90

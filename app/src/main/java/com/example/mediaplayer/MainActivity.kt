@@ -66,8 +66,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main
-        )
+        mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         Foreground.init(application) // Foreground class, Background 체크
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             TedPermission.with(this)

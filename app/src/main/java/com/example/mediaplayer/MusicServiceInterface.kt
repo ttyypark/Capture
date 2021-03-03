@@ -17,11 +17,11 @@ import java.util.*
 class MusicServiceInterface constructor(context: Context) {
     private var mServiceConnection: ServiceConnection?
     var mService: MusicService? = null
-    fun setmSongList(songList: ArrayList<Uri>) {
-        if (mService != null) {
-            mService!!.setmSongList(songList)
-        }
-    }
+//    fun setmSongList(songList: ArrayList<Uri>) {
+//        if (mService != null) {
+//            mService!!.setmSongList(songList)
+//        }
+//    }
 
     fun isPlaying(): Boolean {
         if (mService != null) {
@@ -61,12 +61,12 @@ class MusicServiceInterface constructor(context: Context) {
     //        }
     //        return null;
     //    }
-    @RequiresApi(Build.VERSION_CODES.Q)
-    fun queryAudioItem(position: Int) {
-        if (mService != null) {
-            mService!!.queryAudioItem(position)
-        }
-    }
+//    @RequiresApi(Build.VERSION_CODES.Q)
+//    fun queryAudioItem(position: Int) {
+//        if (mService != null) {
+//            mService!!.queryAudioItem(position)
+//        }
+//    }
 
     fun mAudioItem(): AudioItem? {
         if (mService != null) {
@@ -89,6 +89,6 @@ class MusicServiceInterface constructor(context: Context) {
             }
         }
         context.bindService(Intent(context, MusicService::class.java)
-                .setPackage(context.getPackageName()), mServiceConnection as ServiceConnection, Context.BIND_AUTO_CREATE)
+                .setPackage(context.packageName), mServiceConnection as ServiceConnection, Context.BIND_AUTO_CREATE)
     }
 }

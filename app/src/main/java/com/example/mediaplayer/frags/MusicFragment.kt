@@ -190,7 +190,7 @@ class MusicFragment : Fragment {
             /**
              * [MusicPlayerFragment.updateUI]
              */
-            EventBus.getDefault().post(mService!!.isPlaying()) //???
+            EventBus.getDefault().post(MusicService.EventStatus( mService!!.isPlaying()) ) //???
         }
 
         override fun onServiceDisconnected(arg0: ComponentName) {

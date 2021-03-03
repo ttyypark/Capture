@@ -5,6 +5,7 @@ import android.content.ServiceConnection
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import android.view.*
 import android.widget.*
 import androidx.fragment.app.Fragment
@@ -15,6 +16,7 @@ import com.example.mediaplayer.services.MusicService
 import com.example.mediaplayer.services.MusicService.LocalBinder
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 
 class MusicControllerFragment : Fragment(), View.OnClickListener {
     private var mAlbumImageView: ImageView? = null
@@ -23,6 +25,35 @@ class MusicControllerFragment : Fragment(), View.OnClickListener {
     private var mPlayButton: Button? = null
     private var mService: MusicService? = null
     private var mBound: Boolean = false
+
+    override fun onStart() {
+        super.onStart()
+
+// MusicApplication 활용
+        if (mService == null) mService = MusicApplication.getInstance()!!.getServiceInterface()!!.mService
+
+        // EventBus 설정
+        EventBus.getDefault().register(this)
+
+        updateUI(mService!!.isPlaying())
+        mBound = true
+//        Intent intent = new Intent(getActivity(), MusicService.class);
+//        getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        // EventBus 해제
+        EventBus.getDefault().unregister(this)
+
+        // Service 이용 해제
+        if (mBound) {
+//            // MusicApplication 활용
+//            getActivity().unbindService(mConnection);
+            mBound = false
+        }
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_music_controller, container, false)
@@ -63,9 +94,15 @@ class MusicControllerFragment : Fragment(), View.OnClickListener {
     }
 
     // Service 이용하는 방법 ===============================
-    @Subscribe
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onMessageEvent(event: MusicService.EventStatus) {
+        updateUI(event.status)
+    }
+
     fun updateUI(isPlaying: Boolean) {       // boolean 안됨
         if (mService == null) return  // *** player가 service에 연결되기 전
+
+        Log.e(MusicService.TAG, "MusicControllerFrag 에서 eventBus 받음$isPlaying")
         mPlayButton!!.text = if (isPlaying) "중지" else "재생"
         updateMetaData()
 
@@ -85,34 +122,6 @@ class MusicControllerFragment : Fragment(), View.OnClickListener {
     //        mPlayButton.setText(isPlaying ? "중지" : "재생");
     //    }
     //    // ===============================
-
-    override fun onStart() {
-        super.onStart()
-
-        // EventBus 설정
-        EventBus.getDefault().register(this)
-
-// MusicApplication 활용
-        if (mService == null) mService = MusicApplication.getInstance()!!.getServiceInterface()!!.mService
-        updateUI(mService!!.isPlaying())
-        mBound = true
-//        Intent intent = new Intent(getActivity(), MusicService.class);
-//        getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-    }
-
-    override fun onStop() {
-        super.onStop()
-
-        // EventBus 해제
-        EventBus.getDefault().unregister(this)
-
-        // Service 이용 해제
-        if (mBound) {
-//            // MusicApplication 활용
-//            getActivity().unbindService(mConnection);
-            mBound = false
-        }
-    }
 
     override fun onClick(v: View) {
         when (v.id) {

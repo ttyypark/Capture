@@ -4,6 +4,7 @@ import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
+import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
 import android.provider.BaseColumns
@@ -15,6 +16,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.RelativeLayout
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.mediaplayer.PhotoAdapter.PhotoViewHolder
@@ -28,11 +30,13 @@ class PhotoAdapter : RecyclerView.Adapter<PhotoViewHolder> {
     }
 
     private var mListener: onItemClickListener? = null
-    private val TAG: String = "포토어댑터"
-
     private var mContext: Context? = null
     private var itemLayout: Int = 0
     var mPhotoList: ArrayList<PhotoItem>? = null
+
+    companion object {
+        private const val TAG: String = "포토어댑터"
+    }
 
     // 리스너 객체 전달함수
     fun setOnItemClickListener(listener: onItemClickListener) {
@@ -87,7 +91,7 @@ class PhotoAdapter : RecyclerView.Adapter<PhotoViewHolder> {
     }
 
     override fun onBindViewHolder(holder: PhotoViewHolder, position: Int) {
-        Log.i(TAG, "BindViewHolder : $position")
+        Log.i(Companion.TAG, "BindViewHolder : $position")
 //        final PhotoItem item = mItems.get(position);
 //        holder.setPhotoItem(item);
         val item: PhotoItem = mPhotoList!![position]
@@ -117,6 +121,8 @@ class PhotoAdapter : RecyclerView.Adapter<PhotoViewHolder> {
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
+    @Suppress("DEPRECATION")
     private fun getPhotoList(): ArrayList<PhotoItem> {
         val photoList: ArrayList<PhotoItem> = ArrayList()
         var uri: Uri?
@@ -155,7 +161,7 @@ class PhotoAdapter : RecyclerView.Adapter<PhotoViewHolder> {
             photoItem.mRELATIVE_PATH = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.RELATIVE_PATH))
             photoItem.mDATA = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA))
             photoList.add(photoItem)
-            Log.i(TAG, "Path : $uri$mDate*$Sdate");
+            Log.i(Companion.TAG, "Path : $uri$mDate*$Sdate");
 
 //            if (!TextUtils.isEmpty(absolutePathOfImage))
 //            {
@@ -171,7 +177,7 @@ class PhotoAdapter : RecyclerView.Adapter<PhotoViewHolder> {
         return photoList
     }
 
-    open class PhotoItem : Serializable, Parcelable {
+    class PhotoItem : Serializable, Parcelable {
         var imgPath: String? = null
         var mDate: String? = null
         private var selected: Boolean = false
@@ -183,6 +189,19 @@ class PhotoAdapter : RecyclerView.Adapter<PhotoViewHolder> {
         var mRELATIVE_PATH: String? = null
         var mDATA: String? = null
 
+        companion object {
+            @JvmField val CREATOR: Parcelable.Creator<PhotoItem?> = object : Parcelable.Creator<PhotoItem?> {
+                override fun createFromParcel(`in`: Parcel): PhotoItem {
+                    return PhotoItem(`in`)
+                }
+
+                override fun newArray(size: Int): Array<PhotoItem?> {
+                    return arrayOfNulls(size)
+                }
+            }
+        }
+
+
         constructor(imgPath: String?, date: String?, selected: Boolean, uri: Uri?) {
             this.imgPath = imgPath
             this.mDate = date
@@ -191,7 +210,7 @@ class PhotoAdapter : RecyclerView.Adapter<PhotoViewHolder> {
         }
 
         // Parcelable 로 만들기 -----
-        protected constructor(`in`: Parcel) {
+        constructor(`in`: Parcel) {
             imgPath = `in`.readString()
             mDate = `in`.readString()
             selected = `in`.readByte().toInt() != 0
@@ -243,16 +262,6 @@ class PhotoAdapter : RecyclerView.Adapter<PhotoViewHolder> {
             dest.writeString(mDATA)
         } // Parcelable 로 만들기 -----
 
-        companion object {
-            @JvmField val CREATOR: Parcelable.Creator<PhotoItem?> = object : Parcelable.Creator<PhotoItem?> {
-                override fun createFromParcel(`in`: Parcel): PhotoItem? {
-                    return PhotoItem(`in`)
-                }
-
-                override fun newArray(size: Int): Array<PhotoItem?> {
-                    return arrayOfNulls(size)
-                }
-            }
-        }
     }
+
 }

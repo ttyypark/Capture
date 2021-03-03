@@ -1,5 +1,6 @@
 package com.example.mediaplayer
 
+import android.annotation.SuppressLint
 import android.content.*
 import android.database.Cursor
 import android.net.Uri
@@ -26,12 +27,13 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 
-class PhotoViewActivity constructor() : AppCompatActivity(), View.OnClickListener {
+class PhotoViewActivity : AppCompatActivity(), View.OnClickListener {
     private var mContext: Context? = null
     private var mItem: PhotoItem? = null
     private var mPath: String? = null
     private val mImageView: ImageView? = null
-    public override fun onEnterAnimationComplete() {
+
+    override fun onEnterAnimationComplete() {
         super.onEnterAnimationComplete()
         setInit()
     }
@@ -44,16 +46,16 @@ class PhotoViewActivity constructor() : AppCompatActivity(), View.OnClickListene
     }
 
     private fun getData() {
-        val intent: Intent = getIntent()
+        val intent: Intent = intent
         mPath = intent.getStringExtra("path")
-        mItem = intent.getExtras()!!.get("photoItem") as PhotoItem?
+        mItem = intent.extras!!.get("photoItem") as PhotoItem?
     }
 
     private fun setInit() {
         val mImageView: PhotoView = findViewById<View>(R.id.photoview) as PhotoView
         Glide.with((mContext)!!).load(mPath).into(mImageView)
         mImageView.setOnLongClickListener(object : OnLongClickListener {
-            public override fun onLongClick(v: View): Boolean {
+            override fun onLongClick(v: View): Boolean {
                 Log.d("사진사건", "onLongClick")
                 //                PhotoGalleryActivity.dataModifyDialog()  ==> eventBus로도?
                 editDialog(mItem)
@@ -61,13 +63,14 @@ class PhotoViewActivity constructor() : AppCompatActivity(), View.OnClickListene
             }
         })
         mImageView.setOnGenericMotionListener(object : OnGenericMotionListener {
-            public override fun onGenericMotion(v: View, event: MotionEvent): Boolean {
+            override fun onGenericMotion(v: View, event: MotionEvent): Boolean {
                 Log.d("사진사건", "onGenericMotion")
                 return false
             }
         })
     }
 
+    @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
     private fun editDialog(item: PhotoItem?) {
         val vi: LayoutInflater = getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
         //        LinearLayout editLayout = (LinearLayout) vi.inflate(R.layout.edit_dialog, null);
@@ -90,42 +93,49 @@ class PhotoViewActivity constructor() : AppCompatActivity(), View.OnClickListene
                 .setView(editLayout)
                 .setNeutralButton("확인", object : DialogInterface.OnClickListener {
                     @RequiresApi(api = Build.VERSION_CODES.Q) // ***** contentresolver 수정 안되는 부분
-                    public override fun onClick(dialog: DialogInterface, which: Int) {
-                        newItem!!.mDISPLAY_NAME = displayname.getText().toString()
-                        newItem.mCONTENT_TYPE = contenttype.getText().toString()
-                        newItem.mDATE_MODIFIED = modified.getText().toString()
-                        newItem.mRELATIVE_PATH = relative.getText().toString()
-                        newItem.mDATA = pathdata.getText().toString()
-                        newItem.mDate = datetaken.getText().toString()
+                    override fun onClick(dialog: DialogInterface, which: Int) {
+                        newItem!!.mDISPLAY_NAME = displayname.text.toString()
+                        newItem.mCONTENT_TYPE = contenttype.text.toString()
+                        newItem.mDATE_MODIFIED = modified.text.toString()
+                        newItem.mRELATIVE_PATH = relative.text.toString()
+                        newItem.mDATA = pathdata.text.toString()
+                        newItem.mDate = datetaken.text.toString()
                         ////  사진자료 수정, newItem 자료를
-                        val values: ContentValues = ContentValues()
+                        val values = ContentValues()
                         values.put(MediaStore.Images.Media.IS_PENDING, 1)
                         values.put(MediaStore.Images.Media.DISPLAY_NAME, newItem.mDISPLAY_NAME)
                         values.put(MediaStore.Images.Media.MIME_TYPE, newItem.mCONTENT_TYPE)
                         values.put(MediaStore.Images.Media.RELATIVE_PATH, newItem.mRELATIVE_PATH)
                         try {
                             val dateModify: Date = SimpleDateFormat("yyyy.MM.dd", Locale.KOREA).parse(newItem.mDATE_MODIFIED)
-                            values.put(MediaStore.Images.Media.DATE_MODIFIED, dateModify.getTime() / 1000)
+                            values.put(MediaStore.Images.Media.DATE_MODIFIED, dateModify.time / 1000)
                         } catch (e: ParseException) {
                             values.put(MediaStore.Images.Media.DATE_MODIFIED, System.currentTimeMillis())
                             e.printStackTrace()
                         }
-                        val resolver: ContentResolver = mContext!!.getContentResolver()
+                        val resolver: ContentResolver = mContext!!.contentResolver
                         // RELATIVE_PATH/DISPLAY_NAME --> real path(DATA)
-                        val uri: Uri = getUriFromPath(newItem.mDATA) // ** DISPLAY_NAME 에 따라 자동 바뀜 **
+                        val uri: Uri = getUriFromPath(item.mDATA) // ** DISPLAY_NAME 에 따라 자동 바뀜 **
+//                        val uri: Uri = getUriFromPath(newItem.mDATA) // ** DISPLAY_NAME 에 따라 자동 바뀜 **
                         // real path 계산 routine 필요
-                        resolver.update(uri, values, null, null) // 수정 안됨 !!!!!!!
+//-----------------------------------------------------------------------------------------------
+//                        resolver.update(uri, values, null, null) // 수정 안됨 !!!!!!!
+//-----------------------------------------------------------------------------------------------
+
                         try {
                             val dateTaken: Date = SimpleDateFormat("yyyy.MM.dd", Locale.KOREA).parse(newItem.mDate)
-                            values.put(MediaStore.Images.Media.DATE_TAKEN, dateTaken.getTime())
+                            values.put(MediaStore.Images.Media.DATE_TAKEN, dateTaken.time)
                         } catch (e: ParseException) {
                             values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis())
                             //                            e.printStackTrace();
                         }
                         values.put(MediaStore.Images.Media.IS_PENDING, 0)
-                        resolver.update(uri, values, null, null) // 수정 안됨 !!!!!!!
                         Log.e("사진사건 수정", (uri.toString() + "\n" + newItem.mDATA
                                 + "\n" + values.getAsString(MediaStore.Images.Media.DATE_TAKEN)))
+
+//-----------------------------------------------------------------------------------------------
+//                        resolver.update(uri, values, null, null) // 수정 안됨 !!!!!!!  --> 아래의 화일 수정?
+//-----------------------------------------------------------------------------------------------
 
 //                        ParcelFileDescriptor pfd = resolver.openFileDescriptor(uri,"w", null);
 //                        FileOutputStream outStream = new FileOutputStream(pfd.getFileDescriptor());
@@ -139,19 +149,20 @@ class PhotoViewActivity constructor() : AppCompatActivity(), View.OnClickListene
                 }).show()
     }
 
-    public override fun onClick(v: View) {}
+    override fun onClick(v: View) {}
+    @SuppressLint("Recycle")
     fun getUriFromPath(filePath: String?): Uri {
-        val cursor: Cursor? = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                null, "_data = '" + filePath + "'", null, null)
+        val cursor: Cursor? = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                null, "_data = '$filePath'", null, null)
         cursor!!.moveToNext()
         val id: Int = cursor.getInt(cursor.getColumnIndex("_id"))
-        val uri: Uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id.toLong())
-        return uri
+        return ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id.toLong())
     }
 
+    @Suppress("DEPRECATION")
     fun getRealPathFromURI(contentUri: Uri?): String {
         val proj: Array<String> = arrayOf(MediaStore.Images.Media.DATA)
-        val cursor: Cursor? = getContentResolver().query((contentUri)!!, proj, null, null, null)
+        val cursor: Cursor? = contentResolver.query((contentUri)!!, proj, null, null, null)
         cursor!!.moveToNext()
         val path: String = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.DATA))
         val uri: Uri = Uri.fromFile(File(path))

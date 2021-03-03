@@ -31,6 +31,11 @@ import java.util.*
 class VideoFragment : Fragment() {
     var callback: FragmentCallback? = null
     var videoRecyclerAdapter: VideoRecyclerAdapter? = null
+
+    companion object {
+        private const val TAG = "비디오"
+    }
+
     override fun onAttach(context: Context) {
         super.onAttach(context)
         if (context is FragmentCallback) {
@@ -44,7 +49,8 @@ class VideoFragment : Fragment() {
     }
 
     override fun onCreateView(
-            inflater: LayoutInflater, container: ViewGroup?,
+            inflater: LayoutInflater,
+            container: ViewGroup?,
             savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_video, container, false)
@@ -73,8 +79,13 @@ class VideoFragment : Fragment() {
 //        cursor.close();
     }
 
-    inner class VideoRecyclerAdapter     //        private ArrayList<Uri> mVideoList;
-    (private val mContext: Context?, cursor: Cursor?) : CursorRecyclerViewAdapter<VideoViewHolder>(mContext, cursor) {
+    inner class VideoRecyclerAdapter(
+            private val mContext: Context?,
+            cursor: Cursor?)
+        : CursorRecyclerViewAdapter<VideoViewHolder>(mContext, cursor) {
+
+//        private ArrayList<Uri> mVideoList;
+
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VideoViewHolder {
             val view = LayoutInflater.from(parent.context)
                     .inflate(R.layout.video_item, parent, false)
@@ -92,7 +103,7 @@ class VideoFragment : Fragment() {
 //          입력받은 cursor를 이용하여 데이터 처리 =======================
             val videoItem = VideoItem.bindCursor(cursor, uri, mContext) ?: return
             viewHolder.setVideoItem(videoItem, cursor.position)
-            //            Log.d(TAG, "Bind Title:" + videoItem.mTitle + ", 촬영날자:" + videoItem.mDate);
+            Log.d(TAG, "Bind Title:" + videoItem.mTitle + ", 촬영날자:" + videoItem.mDate);
 
 //            //        MediaMetadataRetriever 를 이용하여 데이터 처리 ================
 //            final MediaMetadataRetriever retriever;
@@ -108,7 +119,8 @@ class VideoFragment : Fragment() {
 //                Log.d("VideoFrag", "Retriever 오류! ");
 //                e.printStackTrace();
 //            }
-            viewHolder.itemView.setOnClickListener(View.OnClickListener {
+
+            viewHolder.itemView.setOnClickListener {
                 Log.d(TAG, "item 클릭 Uri : $uri")
                 Log.d(TAG, "title : $title")
 
@@ -117,13 +129,10 @@ class VideoFragment : Fragment() {
                  * 비디오 보기
                  * [com.example.mediaplayer.frags.VideoPlayerFragment.playVideo]
                  */
-                /**
-                 * 비디오 보기
-                 * [com.example.mediaplayer.frags.VideoPlayerFragment.playVideo]
-                 */
-                EventBus.getDefault().post(uri)
+                EventBus.getDefault().post(EventUri(uri))
+
                 if (callback != null) callback!!.setPage(1)
-            })
+            }
         }
     }
 
@@ -134,6 +143,7 @@ class VideoFragment : Fragment() {
         private val mImgAlbumArt: ImageView
         private val mTxtTitle: TextView
         private val mSubTitle: TextView? = null
+
         fun setVideoItem(item: VideoItem, position: Int) {
 //            mItem = item;
             mTxtTitle.text = item.mDate
@@ -153,7 +163,7 @@ class VideoFragment : Fragment() {
         init {
             mImgAlbumArt = view.findViewById(R.id.imageView)
             mTxtTitle = view.findViewById(R.id.txt_title)
-            //            mSubTitle = view.findViewById(R.id.txt_sub_title);
+//            mSubTitle = view.findViewById(R.id.txt_sub_title);
             view.setOnClickListener(object : View.OnClickListener {
                 override fun onClick(v: View) {
                     // ..
@@ -166,8 +176,7 @@ class VideoFragment : Fragment() {
         var mContext: Context? = null
         var mId // 오디오 고유 ID
                 : Long = 0
-
-        //        public long mAlbumId; // 오디오 앨범아트 ID
+//        public long mAlbumId; // 오디오 앨범아트 ID
         lateinit var mTitle // 타이틀 정보
                 : String
         var mDate //
@@ -181,6 +190,7 @@ class VideoFragment : Fragment() {
         var mBitmap: Bitmap? = null
 
         companion object {
+            @Suppress("DEPRECATION")
             fun bindCursor(cursor: Cursor?, uri: Uri?, mContext: Context?): VideoItem? {
                 // 개별 item, cursor
                 val videoItem = VideoItem()
@@ -221,32 +231,36 @@ class VideoFragment : Fragment() {
                         + ", Path:" + videoItem.mDataPath))
                 return videoItem
             }
-
-            fun bindRetriever(retriever: MediaMetadataRetriever, uri: Uri?): VideoItem {
-                // 개별 item, retriever
-                val videoItem = VideoItem()
-                videoItem.mTitle = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
-                videoItem.mDate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE)
-                videoItem.mAlbum = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)
-                videoItem.mDuration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION).toLong()
-                videoItem.mBitmap = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST)
-                Log.d(TAG, "Title:" + videoItem.mTitle + ", Album:" + videoItem.mAlbum)
-                return videoItem
-            }
+// 21.2.23
+//            fun bindRetriever(retriever: MediaMetadataRetriever, uri: Uri?): VideoItem {
+//                // 개별 item, retriever
+//                val videoItem = VideoItem()
+//                videoItem.mTitle = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
+//                videoItem.mDate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DATE)
+//                videoItem.mAlbum = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM)
+//                videoItem.mDuration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION).toLong()
+//                videoItem.mBitmap = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST)
+//                Log.d(TAG, "Title:" + videoItem.mTitle + ", Album:" + videoItem.mAlbum)
+//                return videoItem
+//            }
         }
     }
 
+    @Suppress("DEPRECATION")
     fun getRealPathFromURI(contentUri: Uri?): String {
         val proj = arrayOf(MediaStore.Video.Media.DATA)
+
         val cursor = requireActivity().contentResolver.query((contentUri)!!, proj, null, null, null)
         cursor!!.moveToNext()
         val path = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.DATA))
         val uri = Uri.fromFile(File(path))
+
         cursor.close()
         return path
     }
 
-    companion object {
-        private val TAG = "비디오"
-    }
+
+    data class EventUri(
+            var uri: Uri)
+
 }

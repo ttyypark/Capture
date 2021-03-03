@@ -16,12 +16,15 @@ import com.example.mediaplayer.PhotoAdapter.PhotoItem
 import com.example.mediaplayer.frags.EditDialogFragment
 import com.example.mediaplayer.frags.EditDialogFragment.OnCompleteListener
 
-class PhotoGalleryActivity constructor() : AppCompatActivity(), OnCompleteListener {
-    private val TAG: String = "포토 갤러리"
+class PhotoGalleryActivity : AppCompatActivity(), OnCompleteListener {
     private var selectView: View? = null
 
+    companion object {
+        private const val TAG: String = "포토 갤러리"
+    }
+
     // callBack 함수
-    public override fun onInputedData(item: PhotoItem?) {
+    override fun onInputedData(item: PhotoItem?) {
         Toast.makeText(this, item!!.mDISPLAY_NAME, Toast.LENGTH_LONG).show()
         transition(selectView, item)
     }
@@ -35,7 +38,7 @@ class PhotoGalleryActivity constructor() : AppCompatActivity(), OnCompleteListen
 
         //       item click interface
         mPhotoAdapter.setOnItemClickListener(object : PhotoAdapter.onItemClickListener {
-            public override fun onItemClicked(item: PhotoItem, view: View?) {
+            override fun onItemClicked(item: PhotoItem, view: View?) {
 //                Toast.makeText(getApplicationContext(), "아이템 선택됨: " + item.imgPath, Toast.LENGTH_SHORT).show();
 //                if(item.mDate == "Title") {
 //                    // input dialog
@@ -82,4 +85,5 @@ class PhotoGalleryActivity constructor() : AppCompatActivity(), OnCompleteListen
             startActivity(intent, options.toBundle())
         }
     }
+
 }

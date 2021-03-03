@@ -5,7 +5,7 @@ import android.app.Application
 import android.app.Application.ActivityLifecycleCallbacks
 import android.os.Bundle
 
-class Foreground constructor() : ActivityLifecycleCallbacks {
+class Foreground : ActivityLifecycleCallbacks {
     fun getAppStatus(): AppStatus? {
         return mAppStatus
     }
@@ -18,8 +18,8 @@ class Foreground constructor() : ActivityLifecycleCallbacks {
 
     // running activity count
     private var running: Int = 0
-    public override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
-    public override fun onActivityStarted(activity: Activity) {
+    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
+    override fun onActivityStarted(activity: Activity) {
         if (++running == 1) {
             mAppStatus = AppStatus.RETURNED_TO_FOREGROUND
         } else if (running > 1) {
@@ -27,16 +27,16 @@ class Foreground constructor() : ActivityLifecycleCallbacks {
         }
     }
 
-    public override fun onActivityResumed(activity: Activity) {}
-    public override fun onActivityPaused(activity: Activity) {}
-    public override fun onActivityStopped(activity: Activity) {
+    override fun onActivityResumed(activity: Activity) {}
+    override fun onActivityPaused(activity: Activity) {}
+    override fun onActivityStopped(activity: Activity) {
         if (--running == 0) {
             mAppStatus = AppStatus.BACKGROUND
         }
     }
 
-    public override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
-    public override fun onActivityDestroyed(activity: Activity) {}
+    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+    override fun onActivityDestroyed(activity: Activity) {}
 
     companion object {
         private var instance: Foreground? = null

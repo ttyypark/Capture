@@ -1,6 +1,7 @@
 package com.example.mediaplayer.frags
 
 import android.content.Context
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -54,7 +55,8 @@ class PhotoFragment : Fragment() {
                 /**
                  * 사진 보기
                  * [com.example.mediaplayer.frags.PhotoViewFragment.playPhoto]                   */
-                EventBus.getDefault().post(item)
+                EventBus.getDefault().post(EventItemUri(item.mUri))
+
                 if (callback != null) callback!!.setPage(1)
             }
         })
@@ -72,4 +74,7 @@ class PhotoFragment : Fragment() {
     companion object {
         private const val TAG = "사진"
     }
+
+    data class EventItemUri(
+            val uri: Uri?)
 }

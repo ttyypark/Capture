@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.provider.BaseColumns
+import android.provider.ContactsContract.Intents.Insert.DATA
 import android.provider.MediaStore
 import android.text.format.DateFormat
 import android.util.Log
@@ -25,6 +26,7 @@ import com.example.mediaplayer.adapters.CursorRecyclerViewAdapter
 import com.squareup.picasso.Picasso
 import java.io.FileDescriptor
 import java.util.*
+
 
 class AudioAdapter : CursorRecyclerViewAdapter<AudioAdapter.MyAudioViewHolder> {
     interface onItemClickListener {
@@ -120,7 +122,7 @@ class AudioAdapter : CursorRecyclerViewAdapter<AudioAdapter.MyAudioViewHolder> {
         val songList: ArrayList<Uri> = ArrayList()
         mSongID = ArrayList()
         val selection: String = MediaStore.Audio.Media.IS_MUSIC + " = 1"
-        val sortOrder: String = MediaStore.Audio.Media.TITLE + " COLLATE LOCALIZED ASC"
+//        val sortOrder: String = MediaStore.Audio.Media.TITLE + " COLLATE LOCALIZED ASC"
         val cursor: Cursor? = mContext!!.contentResolver.query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                 null,
                 selection,
@@ -210,6 +212,7 @@ class AudioAdapter : CursorRecyclerViewAdapter<AudioAdapter.MyAudioViewHolder> {
         var mBitmap: Bitmap? = null
 
         companion object {
+            @Suppress("DEPRECATION")
             @RequiresApi(Build.VERSION_CODES.Q)
             fun bindCursor(context: Context?, cursor: Cursor?): AudioItem {
                 val audioItem = AudioItem()
@@ -268,15 +271,7 @@ class AudioAdapter : CursorRecyclerViewAdapter<AudioAdapter.MyAudioViewHolder> {
         }
 
         private fun getDefaultAlbumArtEfficiently(resource: Resources?): Bitmap? {
-            var defaultBitmapArt: Bitmap? = null
-//        if (defaultBitmapArt == null) {
-            defaultBitmapArt = BitmapFactory.decodeResource(resource, R.drawable.snow)
-//            defaultBitmapArt = decodeSampledBitmapFromResource(resource,
-//                    R.drawable.snow, UtilFunctions
-//                            .getUtilFunctions().dpToPixels(85, resource),
-//                    UtilFunctions.getUtilFunctions().dpToPixels(85, resource));
-//        }
-            return defaultBitmapArt
+            return BitmapFactory.decodeResource(resource, R.drawable.snow)
         }
     }
 }

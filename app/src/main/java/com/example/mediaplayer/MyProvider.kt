@@ -20,8 +20,8 @@ class MyProvider : ContentProvider() {
 
         // Create the constants used to differentiate between the different
         // URI requests.
-        private val ALLROWS: Int = 1
-        private val SINGLE_ROW: Int = 2
+        private const val ALLROWS: Int = 1
+        private const val SINGLE_ROW: Int = 2
         private var uriMatcher: UriMatcher? = null
 
         // Populate the UriMatcher object, where a URI ending in ‘items’ will
@@ -34,7 +34,7 @@ class MyProvider : ContentProvider() {
         }
     }
 
-    public override fun query(uri: Uri, projection: Array<String>?,
+    override fun query(uri: Uri, projection: Array<String>?,
                               selection: String?, selectionArgs: Array<String>?,
                               sortOrder: String?): Cursor? {
         // If this is a row query, limit the result set to the passed in row.
@@ -45,7 +45,7 @@ class MyProvider : ContentProvider() {
         return null
     }
 
-    public override fun getType(uri: Uri): String? {
+    override fun getType(uri: Uri): String? {
         when (uriMatcher!!.match(uri)) {
             ALLROWS -> return "vnd.example.cursor.dir/myprovidercontent"
             SINGLE_ROW -> return "vnd.example.cursor.item/myprovidercontent"
@@ -53,28 +53,28 @@ class MyProvider : ContentProvider() {
         }
     }
 
-    public override fun insert(uri: Uri, values: ContentValues?): Uri? {
+    override fun insert(uri: Uri, values: ContentValues?): Uri {
         val rowID: Long = 1 //[ ... Add a new item ... ]
 
         // Return a URI to the newly added item.
         if (rowID > 0) {
             return ContentUris.withAppendedId(CONTENT_URI, rowID)
         }
-        throw SQLException("Failed to add new item into " + uri)
+        throw SQLException("Failed to add new item into $uri")
     }
 
-    public override fun delete(uri: Uri, selection: String?,
+    override fun delete(uri: Uri, selection: String?,
                                selectionArgs: Array<String>?): Int {
         when (uriMatcher!!.match(uri)) {
-            ALLROWS, SINGLE_ROW -> throw IllegalArgumentException("Unsupported URI:" + uri)
-            else -> throw IllegalArgumentException("Unsupported URI:" + uri)
+            ALLROWS, SINGLE_ROW -> throw IllegalArgumentException("Unsupported URI:$uri")
+            else -> throw IllegalArgumentException("Unsupported URI:$uri")
         }
     }
 
-    public override fun update(uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<String>?): Int {
+    override fun update(uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<String>?): Int {
         when (uriMatcher!!.match(uri)) {
-            ALLROWS, SINGLE_ROW -> throw IllegalArgumentException("Unsupported URI:" + uri)
-            else -> throw IllegalArgumentException("Unsupported URI:" + uri)
+            ALLROWS, SINGLE_ROW -> throw IllegalArgumentException("Unsupported URI:$uri")
+            else -> throw IllegalArgumentException("Unsupported URI:$uri")
         }
     }
 }

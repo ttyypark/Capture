@@ -9,6 +9,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="center"
         android:transitionName="transition"
+        android:adjustViewBounds="true"
         android:src="@mipmap/ic_launcher" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

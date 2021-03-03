@@ -24,6 +24,7 @@ import com.example.mediaplayer.services.MusicService.BroadcastActions
 import com.example.mediaplayer.services.MusicService.LocalBinder
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import java.util.*
 
 //import com.squareup.otto.Subscribe;
@@ -108,8 +109,14 @@ class MusicPlayerFragment : Fragment(), View.OnClickListener {
         }
     }
 
-    @Subscribe
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onMessageEvent(event: MusicService.EventStatus) {
+        updateUI(event.status)
+    }
+
     fun updateUI(playing: Boolean) {
+        Log.e(MusicService.TAG, "MusicPlayerFrag 에서 eventBus 받음$playing")
+
         if (playing) {
             if (mService == null) return  // *** player가 service에 연결되기 전
 //            MediaMetadataRetriever retriever = mService.getMetaDataRetriever();
@@ -133,9 +140,9 @@ class MusicPlayerFragment : Fragment(), View.OnClickListener {
             }
 
             if (mService!!.getMediaPlayer()!!.isLooping) {
-                mPlayLoop!!.text = "연속재생"
+                mPlayLoop.text = "연속재생"
             } else {
-                mPlayLoop!!.text = "반복재생"
+                mPlayLoop.text = "반복재생"
             }
             //            }
         }
@@ -151,7 +158,7 @@ class MusicPlayerFragment : Fragment(), View.OnClickListener {
             }
             mCountDownTimer = null
         } else {
-            val duration: Int = mMediaPlayer!!.duration - mMediaPlayer!!.currentPosition
+            val duration: Int = mMediaPlayer!!.duration - mMediaPlayer.currentPosition
             // 카운트다운 시작
             if (mCountDownTimer != null) {
                 mCountDownTimer!!.cancel()
@@ -159,7 +166,7 @@ class MusicPlayerFragment : Fragment(), View.OnClickListener {
             }
             mCountDownTimer = object : CountDownTimer(duration.toLong(), 1000) {
                 override fun onTick(millisUntilFinished: Long) {
-                    val mMediaPlayer: MediaPlayer = mService!!.getMediaPlayer() ?: return
+                    @Suppress("NAME_SHADOWING") val mMediaPlayer: MediaPlayer = (mService!!.getMediaPlayer() ?: return)
                     val currentPosition: Int = mMediaPlayer.currentPosition
                     mSeekBar.progress = currentPosition
                     val min: Int = currentPosition / 1000 / 60
@@ -178,10 +185,10 @@ class MusicPlayerFragment : Fragment(), View.OnClickListener {
         when (v.id) {
             R.id.play_loop -> if (mService!!.getMediaPlayer()!!.isLooping) {
                 mService!!.getMediaPlayer()!!.isLooping = false
-                mPlayLoop!!.text = "반복재생"
+                mPlayLoop.text = "반복재생"
             } else {
                 mService!!.getMediaPlayer()!!.isLooping = true
-                mPlayLoop!!.text = "연속재생"
+                mPlayLoop.text = "연속재생"
             }
             R.id.stop_player -> stopPlayer()
             else -> {

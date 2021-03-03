@@ -31,11 +31,11 @@ class VideoPlayerActivity : AppCompatActivity(), FragmentCallback {
         tabLayout.setupWithViewPager(viewPager)
 
 //      ===========================================
-        val mMediaPlayer: MediaPlayer = MediaPlayer()
+        val mMediaPlayer = MediaPlayer()
     }
 
     override fun setPage(pageNum: Int) {   // event bus 아님
-        viewPager!!.currentItem = pageNum
+        viewPager.currentItem = pageNum
     }
 
     //    public void stopPlayer(){

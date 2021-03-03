@@ -30,7 +30,7 @@ constructor(private var mListener: onItemClickListener) : RecyclerView.Adapter<M
     private var mItems: List<AudioItem> = ArrayList()
 
     // 아이템 클릭시 실행함수 인터페이스 정의
-    open interface onItemClickListener {
+    interface onItemClickListener {
         fun onItemClicked(Item: AudioItem?)
     }
 
@@ -44,10 +44,10 @@ constructor(private var mListener: onItemClickListener) : RecyclerView.Adapter<M
         notifyDataSetChanged()
     }
 
-    public override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyAudioViewHolder {
-        val view: View = LayoutInflater.from(parent.getContext())
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyAudioViewHolder {
+        val view: View = LayoutInflater.from(parent.context)
                 .inflate(R.layout.listitem_audio, parent, false)
-        val viewHolder: MyAudioViewHolder = MyAudioViewHolder(view)
+        val viewHolder = MyAudioViewHolder(view)
 
 // Item Click
 //        view.setOnClickListener(new View.OnClickListener() {
@@ -62,7 +62,7 @@ constructor(private var mListener: onItemClickListener) : RecyclerView.Adapter<M
         return viewHolder
     }
 
-    public override fun onBindViewHolder(holder: MyAudioViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: MyAudioViewHolder, position: Int) {
         val item: AudioItem = mItems.get(position)
         // TODO : 데이터를 뷰홀더에 표시하시오
 
@@ -77,7 +77,7 @@ constructor(private var mListener: onItemClickListener) : RecyclerView.Adapter<M
 //        });
     }
 
-    public override fun getItemCount(): Int {
+    override fun getItemCount(): Int {
         return mItems.size
     }
 
@@ -96,5 +96,5 @@ constructor(private var mListener: onItemClickListener) : RecyclerView.Adapter<M
 //                }
 //            });
     // TODO : 뷰홀더 완성하시오
-    constructor(var mView: View) : RecyclerView.ViewHolder(mView)
+    constructor(mView: View) : RecyclerView.ViewHolder(mView)
 }

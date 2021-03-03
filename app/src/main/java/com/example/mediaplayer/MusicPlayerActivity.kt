@@ -15,9 +15,11 @@ import androidx.viewpager.widget.ViewPager
 import com.example.mediaplayer.frags.ListViewFragment
 import com.example.mediaplayer.frags.MusicFragment
 import com.example.mediaplayer.frags.MusicPlayerFragment
+import com.example.mediaplayer.services.MusicService
 import com.google.android.material.tabs.TabLayout
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import java.util.*
 import kotlin.system.exitProcess
 
@@ -136,9 +138,10 @@ class MusicPlayerActivity : AppCompatActivity(), FragmentCallback {
     //        }
     //    }
     ////    ===========================================
-    @Subscribe
-    fun stopPlayer(integer: Int) {
-        if (integer == 3) {
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun stopPlayer(event: MusicService.EventStopPlayer) {
+//    fun stopPlayer(integer: Int) {
+        if (event.action == 3) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 finishAffinity()
             } else {
@@ -149,6 +152,7 @@ class MusicPlayerActivity : AppCompatActivity(), FragmentCallback {
         }
     }
 
+    @Suppress("DEPRECATION")
     private inner class MusicPlayerPagerAdapter constructor(fm: FragmentManager) : FragmentPagerAdapter(fm) {
         override fun getItem(position: Int): Fragment {
             when (position) {

@@ -12,8 +12,10 @@ import android.widget.MediaController
 import android.widget.VideoView
 import androidx.fragment.app.Fragment
 import com.example.mediaplayer.R
+import com.example.mediaplayer.services.MusicService
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 
 class VideoPlayerFragment : Fragment() {
     private lateinit var videoView: VideoView
@@ -24,6 +26,7 @@ class VideoPlayerFragment : Fragment() {
 
         // EventBus에 구독자로 현재 액티비티 추가
         EventBus.getDefault().register(this)
+
         Log.d(TAG, "player start")
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_videoplayer, container, false)
@@ -38,22 +41,24 @@ class VideoPlayerFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         videoView = view.findViewById(R.id.videoview)
+
         val mc = MediaController(context)
         videoView.setMediaController(mc)
     }
 
-    @Subscribe
-    fun playVideo(uri: Uri) {
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun playVideo(event: VideoFragment.EventUri) {
 //        String path = "https://sites.google.com/site/ubiaccessmobile/sample_video.mp4";
 //        videoView.setVideoPath(path);
-        videoView!!.setVideoURI(uri)
-        videoView!!.requestFocus()
-        videoView!!.setOnPreparedListener(object : OnPreparedListener {
+        videoView.setVideoURI(event.uri)
+        videoView.requestFocus()
+        videoView.setOnPreparedListener(object : OnPreparedListener {
             override fun onPrepared(mp: MediaPlayer) {
-                videoView!!.seekTo(0)
-                videoView!!.start()
-                Log.d(TAG, "재생시작 Uri : $uri")
+                videoView.seekTo(0)
+                videoView.start()
+                Log.d(TAG, "재생시작 Uri : $event.uri")
             }
         })
     }

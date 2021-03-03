@@ -10,15 +10,16 @@ import android.media.MediaPlayer.*
 import android.net.Uri
 import android.os.*
 import android.provider.MediaStore
+import android.provider.MediaStore.MediaColumns.*
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.example.mediaplayer.*
 import com.example.mediaplayer.AudioAdapter.AudioItem
 import com.example.mediaplayer.frags.MusicPlayerFragment
-import com.example.mediaplayer.services.MusicService
 import org.greenrobot.eventbus.EventBus
 import java.io.IOException
 import java.util.*
+import android.provider.ContactsContract.Intents.Insert.DATA
 
 //        EventBus.getDefault().post(isPlaying());    // fragment쪽 UI
 //        updateNotificationPlayer();                 // Notification쪽 UI
@@ -112,12 +113,12 @@ class MusicService : Service() {
                 mIndex = mSongList!!.indexOf(mCurrentUri) // 중복?
                 queryAudioItem(mIndex)
                 /**
-                 * [MusicControllerFragment.updateUI]
+                 * [com.example.mediaplayer.frags.MusicControllerFragment.onMessageEvent]
                  */
                 /**
-                 * [MusicPlayerFragment.updateUI]
+                 * [MusicPlayerFragment.onMessageEvent]
                  */
-                EventBus.getDefault().post(isPlaying()) // fragment쪽 UI는  eventBus로
+                EventBus.getDefault().post(EventStatus(isPlaying())) // fragment쪽 UI는  eventBus로
                 updateNotificationPlayer() // Notification쪽
                 sendBroadcast(Intent(BroadcastActions.PREPARED,  // Widget쪽 // action
                         Uri.EMPTY,  // data
@@ -163,7 +164,7 @@ class MusicService : Service() {
         }
     }
 
-//----------------------------------------------------------------------
+    //----------------------------------------------------------------------
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
 //      Error 인 상태에서는 음악 재생을 다시 시작...Stack check 필요?
         if (mMediaPlayer == null || mSongList == null) {
@@ -196,7 +197,7 @@ class MusicService : Service() {
                     /**
                      * [com.example.mediaplayer.MusicPlayerActivity.stopPlayer]
                      */
-                    EventBus.getDefault().post(3)
+                    EventBus.getDefault().post(EventStopPlayer(3))
                 }
 
                 // Widget 상태변경 ****
@@ -301,7 +302,9 @@ class MusicService : Service() {
         /**
          * [MusicPlayerFragment.updateUI] (Boolean)}
          */
-        EventBus.getDefault().post(isPlaying())
+        val event = EventStatus(isPlaying())
+        EventBus.getDefault().post(event)
+        Log.e(TAG, "Service 에서 eventBus 보냄" + isPlaying())
 
 // Widget 상태변경 ****
         sendBroadcast(Intent(BroadcastActions.PLAY_STATE_CHANGED,  // action
@@ -324,20 +327,19 @@ class MusicService : Service() {
         return false
     }
 
-    // 사용 안함
-    //    public AudioAdapter.AudioItem getAudioItem(){
-    ////---------------------------------- AudioItem 만들기 from mCurrentUri
-    //        if (mCurrentUri == null) return null;
-    //        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-    //        retriever.setDataSource(getApplicationContext(), mCurrentUri);
-    //        final AudioAdapter.AudioItem audioItem = AudioAdapter.AudioItem.bindRetriever(retriever);
-    //        return audioItem;
-    //    }
-
+    @Suppress("DEPRECATION")
     @RequiresApi(Build.VERSION_CODES.Q)
     fun queryAudioItem(position: Int) {
         val audioId: Long = mSongID!![position]
         val uri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+//        val projection: Array<String> = arrayOf(
+//                _ID,
+//                TITLE,
+//                ARTIST,
+//                ALBUM,
+//                ALBUM_ID,
+//                DURATION,
+//                DATA
         val projection: Array<String> = arrayOf(
                 MediaStore.Audio.Media._ID,
                 MediaStore.Audio.Media.TITLE,
@@ -349,6 +351,8 @@ class MusicService : Service() {
         )
         val selection: String = MediaStore.Audio.Media._ID + " = ?"
         val selectionArgs: Array<String> = arrayOf(audioId.toString())
+        Log.d("Cursor Query", "id: $audioId, uri: $uri, selection: $selection")
+
         val cursor: Cursor? = contentResolver.query(uri, projection, selection, selectionArgs, null)
         if (cursor != null) {
             if (cursor.count > 0) {
@@ -359,148 +363,9 @@ class MusicService : Service() {
         }
     }
 
-    // NotificationPlayer로 대체 ======================================================
+    data class EventStatus(
+        var status: Boolean)
 
-    //    // Foreground Service -----------------------------
-    //    @RequiresApi(api = Build.VERSION_CODES.M)
-    //    public void startForegroundService(){  //===================
-    ////        Bitmap bitmap = null;
-    //        RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.remote_view);
-    //        Notification.Builder builder;
-    //
-    //        String CHANNEL_ID = "song";
-    //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-    //            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Song Channel",
-    //                    NotificationManager.IMPORTANCE_DEFAULT);
-    //            ((NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE))
-    //                    .createNotificationChannel(channel);
-    //            builder = new Notification.Builder(this, CHANNEL_ID);
-    //
-    //        } else {
-    //            builder = new Notification.Builder(this);
-    //        }
-    ////----------------------------------
-    //        String title = getAudioItem().mTitle;
-    //        String artist = getAudioItem().mArtist;
-    //        Bitmap bitmap = getAudioItem().mBitmap;
-    //
-    ////        String title = mRetriever.extractMetadata((MediaMetadataRetriever.METADATA_KEY_TITLE));
-    ////        String artist = mRetriever.extractMetadata((MediaMetadataRetriever.METADATA_KEY_ARTIST));
-    //        if(title == null) title = "UnKnown";
-    //        if(artist == null) artist = "UnKnown";
-    //
-    //        remoteViews.setTextViewText(R.id.title_text, title);
-    //        remoteViews.setTextViewText(R.id.artist_text, artist);
-    //
-    //        if(bitmap != null) {
-    ////                Picasso.get().load(albumArtUri).error(R.drawable.musiccircle).into(remoteViews, R.id.img_albumart, NOTIFICATION_PLAYER_ID, notification);
-    //            remoteViews.setImageViewBitmap(R.id.album_image, bitmap);
-    //        } else{
-    //            remoteViews.setImageViewResource(R.id.album_image, R.drawable.music_circle);
-    //        }
-    //
-    ////        byte albumImage[] = mRetriever.getEmbeddedPicture();
-    ////
-    ////        if(albumImage == null) {
-    ////            remoteViews.setImageViewResource(R.id.album_image, R.mipmap.ic_launcher);
-    ////            builder.setSmallIcon(R.mipmap.ic_launcher);
-    ////        } else {
-    ////            bitmap = BitmapFactory.decodeByteArray(albumImage, 0,albumImage.length);
-    ////            remoteViews.setImageViewBitmap(R.id.album_image, bitmap);
-    ////            builder.setSmallIcon(Icon.createWithBitmap(bitmap));
-    ////        }
-    //
-    //// ****
-    ////        RemoteViews.RemoteResponse response = new RemoteViews.RemoteResponse();
-    ////        remoteViews.setOnClickResponse(R.id.btn_rewind, response);
-    //
-    //
-    ////        remoteViews.setInt(R.id.resume_button2,
-    ////                "setBackgroundColor", Color.RED);
-    //
-    ////        if(isPlaying()){
-    ////            remoteViews.setTextViewText(R.id.resume_button1, "중지");
-    ////        } else {
-    ////            remoteViews.setTextViewText(R.id.resume_button1, "재생");
-    ////        }
-    ////        remoteViews.setTextViewText(R.id.resume_button2, "앞곡");
-    ////        remoteViews.setTextViewText(R.id.resume_button3, "뒷곡");
-    //
-    ////        builder.setLargeIcon(bitmap);
-    ////        builder.setSmallIcon(Icon.createWithBitmap(bitmap));
-    ////----------------------------------
-    //        Intent notificationIntent = new Intent(this, MusicPlayerActivity.class);
-    //        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
-    ////        builder.setSmallIcon(R.mipmap.ic_launcher)
-    ////        builder.setSmallIcon(Icon.createWithBitmap(bitmap))
-    //        builder.setContent(remoteViews)
-    //                .setContentIntent(pendingIntent);
-    //
-    //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-    //            startForeground(1, builder.build());
-    //        } else {
-    ////            startForeground(1, builder.build());
-    //        }
-    //
-    //    }
-    // NotificationPlayer로 대체 ======================================================
-    // notification => Foreground Service 로 대체 ----------------------------------------
-    //    private void showNotification(){
-    //        String title = mRetriever.extractMetadata((MediaMetadataRetriever.METADATA_KEY_TITLE));
-    //        String artist = mRetriever.extractMetadata((MediaMetadataRetriever.METADATA_KEY_ARTIST));
-    //
-    //        Builder builder = new Builder(this, "Song");
-    ////        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
-    //
-    ////        builder.setContentTitle(title);
-    ////        builder.setContentText(artist);
-    //
-    //        builder.setSmallIcon(R.mipmap.ic_launcher);
-    //
-    //        RemoteViews remoteViews = new RemoteViews(getPackageName(), R.layout.remote_view);
-    //        remoteViews.setTextViewText(R.id.title_text, title);
-    //        remoteViews.setTextViewText(R.id.artist_text, artist);
-    //
-    //        builder.setCustomContentView(remoteViews);
-    //
-    //        Bitmap bitmap = BitmapFactory.decodeResource(
-    //                getResources(), R.mipmap.ic_launcher);
-    //
-    ////        builder.setLargeIcon(bitmap);
-    //        remoteViews.setImageViewBitmap(R.id.album_image, bitmap);
-    //
-    //        // 알림을 클릭하면 수행될 인텐트
-    //        Intent resultIntent = new Intent(this, MusicPlayerActivity.class);
-    //        PendingIntent pendingIntent = PendingIntent.getActivity(this, 1010,
-    //                resultIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-    //        builder.setContentIntent(pendingIntent);
-    //
-    //        // 클릭하면 날리기
-    //        builder.setAutoCancel(true);
-    //
-    //        // 색상
-    //        builder.setColor(Color.YELLOW);
-    //
-    //        // 기본 알림음
-    //        Uri uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-    //        builder.setSound(uri);
-    //
-    //        // 진동
-    //        builder.setVibrate(new long[]{100, 200, 300});
-    //
-    //        Intent stopIntent = new Intent(this, MusicService.class);
-    //        stopIntent.setAction(ACTION_RESUME);
-    //        stopIntent.setAction(ACTION_PREV);
-    //        stopIntent.setAction(ACTION_NEXT);
-    //        PendingIntent stopPendingIntent = PendingIntent.getService(this, 1,
-    //                stopIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-    //
-    //        // 액션
-    ////        builder.addAction(R.mipmap.ic_launcher, "중지", stopPendingIntent);
-    ////        builder.addAction(R.mipmap.ic_launcher, "다음곡", pendingIntent);
-    ////        builder.addAction(R.mipmap.ic_launcher, "이전곡", pendingIntent);
-    //
-    //        // 알림 표시
-    //        startForeground(1, builder.build());
-    //    }
+    data class EventStopPlayer(
+        var action: Int)
 }

@@ -2,11 +2,11 @@ package com.example.mediaplayer
 
 import android.app.Application
 
-class MusicApplication constructor() : Application() {
+class MusicApplication : Application() {
     private var mInterface: MusicServiceInterface? = null
     override fun onCreate() {
         super.onCreate()
-        mInterface = MusicServiceInterface(getApplicationContext())
+        mInterface = MusicServiceInterface(applicationContext)
         mInstance = this
     }
 

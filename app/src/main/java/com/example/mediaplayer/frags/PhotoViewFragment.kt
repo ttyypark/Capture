@@ -1,5 +1,6 @@
 package com.example.mediaplayer.frags
 
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +11,7 @@ import com.example.mediaplayer.R
 import com.github.chrisbanes.photoview.PhotoView
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 
 class PhotoViewFragment constructor() : Fragment() {
     private var photoView: PhotoView? = null
@@ -31,9 +33,9 @@ class PhotoViewFragment constructor() : Fragment() {
         photoView = view.findViewById(R.id.photoview)
     }
 
-    @Subscribe
-    fun playPhoto(item: PhotoItem) {
-        photoView!!.setImageURI(item.mUri)
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun playPhoto(uri: Uri?) {
+        photoView!!.setImageURI(uri)
     }
 
     companion object {
