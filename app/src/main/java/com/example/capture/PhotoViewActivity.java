@@ -1,5 +1,6 @@
 package com.example.capture;
 
+import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -34,6 +35,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 
 public class PhotoViewActivity extends AppCompatActivity implements View.OnClickListener {
     private Context mContext;
@@ -56,14 +58,15 @@ public class PhotoViewActivity extends AppCompatActivity implements View.OnClick
         getData();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private void getData(){
         Intent intent = getIntent();
         mPath = intent.getStringExtra("path");
-        mItem = (PhotoAdapter.PhotoItem) intent.getExtras().get("photoItem");
+        mItem = (PhotoAdapter.PhotoItem) Objects.requireNonNull(intent.getExtras()).get("photoItem");
     }
 
     private void setInit(){
-        PhotoView mImageView = (PhotoView) findViewById(R.id.photoview);
+        PhotoView mImageView = findViewById(R.id.photoview);
         Glide.with(mContext).load(mPath).into(mImageView);
 
         mImageView.setOnLongClickListener(new View.OnLongClickListener() {
@@ -104,11 +107,12 @@ public class PhotoViewActivity extends AppCompatActivity implements View.OnClick
         pathdata.setText(item.mDATA);
         datetaken.setText(item.mDate);
 
-        final PhotoAdapter.PhotoItem newItem = item;
         new AlertDialog.Builder(this)
                 .setTitle("사진정보")
                 .setView(editLayout)
                 .setNeutralButton("확인", new DialogInterface.OnClickListener() {
+                    final PhotoAdapter.PhotoItem newItem = item;
+
                     @RequiresApi(api = Build.VERSION_CODES.Q)    // ***** contentresolver 수정 안되는 부분
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -126,7 +130,7 @@ public class PhotoViewActivity extends AppCompatActivity implements View.OnClick
                         values.put(MediaStore.Images.Media.RELATIVE_PATH, newItem.mRELATIVE_PATH);
                         try {
                             Date dateModify = new SimpleDateFormat("yyyy.MM.dd", Locale.KOREA).parse(newItem.mDATE_MODIFIED);
-                            values.put(MediaStore.Images.Media.DATE_MODIFIED, dateModify.getTime()/1000);
+                            values.put(MediaStore.Images.Media.DATE_MODIFIED, Objects.requireNonNull(dateModify).getTime()/1000);
                         } catch (ParseException e) {
                             values.put(MediaStore.Images.Media.DATE_MODIFIED, System.currentTimeMillis());
                             e.printStackTrace();
@@ -136,21 +140,28 @@ public class PhotoViewActivity extends AppCompatActivity implements View.OnClick
                                                                     // RELATIVE_PATH/DISPLAY_NAME --> real path(DATA)
                         Uri uri = getUriFromPath(newItem.mDATA);    // ** DISPLAY_NAME 에 따라 자동 바뀜 **
                                                                     // real path 계산 routine 필요
-                        resolver.update(uri, values, null, null);  // 수정 안됨 !!!!!!!
+
+//---------------------------------------------------------------------------------------------------------
+//                        resolver.update(uri, values, null, null);  // 수정 안됨 !!!!!!!
+//                        기존 사진 update 에러
+//---------------------------------------------------------------------------------------------------------
 
                         try {
                             Date dateTaken = new SimpleDateFormat("yyyy.MM.dd", Locale.KOREA).parse(newItem.mDate);
-                            values.put(MediaStore.Images.Media.DATE_TAKEN, dateTaken.getTime());
+                            values.put(MediaStore.Images.Media.DATE_TAKEN, Objects.requireNonNull(dateTaken).getTime());
                         } catch (ParseException e) {
                             values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
 //                            e.printStackTrace();
                         }
 
                         values.put(MediaStore.Images.Media.IS_PENDING, 0);
-                        resolver.update(uri, values, null, null);  // 수정 안됨 !!!!!!!
-
                         Log.e("사진사건 수정", uri.toString() + "\n" + newItem.mDATA
-                        + "\n" + values.getAsString(MediaStore.Images.Media.DATE_TAKEN));
+                                + "\n" + values.getAsString(MediaStore.Images.Media.DATE_TAKEN));
+
+//---------------------------------------------------------------------------------------------------------
+                        resolver.update(uri, values, null, null);  // 수정 안됨 !!!!!!!
+//                        기존 사진 update 에러
+//---------------------------------------------------------------------------------------------------------
 
 //                        ParcelFileDescriptor pfd = resolver.openFileDescriptor(uri,"w", null);
 //                        FileOutputStream outStream = new FileOutputStream(pfd.getFileDescriptor());
@@ -169,23 +180,24 @@ public class PhotoViewActivity extends AppCompatActivity implements View.OnClick
 
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public Uri getUriFromPath(String filePath) {
-        Cursor cursor = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+        @SuppressLint("Recycle") Cursor cursor = getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                 null, "_data = '" + filePath + "'", null, null);
 
-        cursor.moveToNext();
+        Objects.requireNonNull(cursor).moveToNext();
         int id = cursor.getInt(cursor.getColumnIndex("_id"));
-        Uri uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
 
-        return uri;
+        return ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public String getRealPathFromURI(Uri contentUri) {
 
         String[] proj = { MediaStore.Images.Media.DATA };
 
         Cursor cursor = getContentResolver().query(contentUri, proj, null, null, null);
-        cursor.moveToNext();
+        Objects.requireNonNull(cursor).moveToNext();
         String path = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.DATA));
         Uri uri = Uri.fromFile(new File(path));
 
