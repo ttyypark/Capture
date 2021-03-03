@@ -1,4 +1,4 @@
-package com.example.mediaplayer;
+package com.example.capture;
 
 import android.content.Context;
 

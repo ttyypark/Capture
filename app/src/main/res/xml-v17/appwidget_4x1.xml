@@ -7,7 +7,7 @@
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="360000000"
     android:widgetCategory="home_screen"
-    android:configure="com.example.mediaplayer.CaptureWidgetConfigure"/>
+    android:configure="com.example.capture.CaptureWidgetConfigure"/>
 
 <!--    android:minHeight="60dp"-->
 <!--    android:minWidth="294dp"-->

@@ -1,11 +1,15 @@
-package com.example.mediaplayer
+package com.example.capture;
 
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.recyclerview.widget.RecyclerView
-import com.example.mediaplayer.AudioAdapter.AudioItem
-import java.util.*
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.ArrayList;
+import java.util.List;
+
 
 //  Adapter 에서 ClickListener 를 활용하는 3가지 방법
 //  1. onCreateViewHolder 에서
@@ -25,29 +29,39 @@ import java.util.*
 //
 //  RecyclerView의 Item layout 정의 필요 R.layout.listitem_audio
 //
-class MyAdapter     //    public MyAdapter() {}
-constructor(private var mListener: onItemClickListener) : RecyclerView.Adapter<MyAdapter.MyAudioViewHolder>() {
-    private var mItems: List<AudioItem> = ArrayList()
+
+public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyAudioViewHolder> {
+    private List<AudioAdapter.AudioItem> mItems = new ArrayList<>();
 
     // 아이템 클릭시 실행함수 인터페이스 정의
-    interface onItemClickListener {
-        fun onItemClicked(Item: AudioItem?)
+    public interface onItemClickListener {
+        void onItemClicked(AudioAdapter.AudioItem Item);
     }
+    private onItemClickListener mListener;
 
     // 리스너 객체 전달함수
-    fun setOnItemClickListener(listener: onItemClickListener) {
-        mListener = listener
+    public void setOnItemClickListener(onItemClickListener listener){
+        this.mListener = listener;
     }
 
-    fun setItems(items: List<AudioItem>) {
-        mItems = items
-        notifyDataSetChanged()
+
+//    public MyAdapter() {}
+
+    public MyAdapter(onItemClickListener listener) {
+        mListener = listener;
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyAudioViewHolder {
-        val view: View = LayoutInflater.from(parent.context)
-                .inflate(R.layout.listitem_audio, parent, false)
-        val viewHolder = MyAudioViewHolder(view)
+    public void setItems(List<AudioAdapter.AudioItem> items) {
+        this.mItems = items;
+        notifyDataSetChanged();
+    }
+
+    @NonNull
+    @Override
+    public MyAudioViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.listitem_audio, parent, false);
+        MyAudioViewHolder viewHolder = new MyAudioViewHolder(view);
 
 // Item Click
 //        view.setOnClickListener(new View.OnClickListener() {
@@ -59,11 +73,13 @@ constructor(private var mListener: onItemClickListener) : RecyclerView.Adapter<M
 //                }
 //            }
 //        });
-        return viewHolder
+
+        return viewHolder;
     }
 
-    override fun onBindViewHolder(holder: MyAudioViewHolder, position: Int) {
-        val item: AudioItem = mItems.get(position)
+    @Override
+    public void onBindViewHolder(@NonNull MyAudioViewHolder holder, int position) {
+        final AudioAdapter.AudioItem item = mItems.get(position);
         // TODO : 데이터를 뷰홀더에 표시하시오
 
 //        //  Item Click
@@ -75,13 +91,23 @@ constructor(private var mListener: onItemClickListener) : RecyclerView.Adapter<M
 //                }
 //            }
 //        });
+
     }
 
-    override fun getItemCount(): Int {
-        return mItems.size
+    @Override
+    public int getItemCount() {
+        return mItems.size();
     }
 
-    inner class MyAudioViewHolder// TODO : 뷰홀더 완성하시오
+
+    public class MyAudioViewHolder extends RecyclerView.ViewHolder {
+        View mView;
+        // TODO : 뷰홀더 완성하시오
+
+        public MyAudioViewHolder(@NonNull View itemView) {
+            super(itemView);
+            this.mView = itemView;
+            // TODO : 뷰홀더 완성하시오
 
 //  Item Click
 //            itemView.setOnClickListener(new View.OnClickListener() {
@@ -95,6 +121,7 @@ constructor(private var mListener: onItemClickListener) : RecyclerView.Adapter<M
 //                    }
 //                }
 //            });
-    // TODO : 뷰홀더 완성하시오
-    constructor(mView: View) : RecyclerView.ViewHolder(mView)
+
+        }
+    }
 }

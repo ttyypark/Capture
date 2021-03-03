@@ -1,20 +1,24 @@
-package com.example.mediaplayer
+package com.example.capture;
 
-import android.Manifest
-import android.content.*
-import android.os.Build
-import android.os.Bundle
-import android.os.StrictMode
-import android.util.Log
-import android.view.*
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
-import androidx.databinding.DataBindingUtil
-import com.example.mediaplayer.databinding.ActivityMainBinding
-import com.gun0912.tedpermission.PermissionListener
-import com.gun0912.tedpermission.TedPermission
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.Manifest;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.StrictMode;
+import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
+
+import com.gun0912.tedpermission.PermissionListener;
+import com.gun0912.tedpermission.TedPermission;
+
+import java.util.List;
 
 //import static android.os.Environment.getExternalStoragePublicDirectory;
+
 // Data 전달 -------------------------------------------------------------------------
 //        FragmentCallback 함수 - VideoPlayerActivity / MusicPlayerActivity의 ViewPager
 //                  페이지 전환(setPage) 함수 호출에 사용
@@ -59,29 +63,33 @@ import com.gun0912.tedpermission.TedPermission
 //  MusicPlayer는 RecyclerViewAdapter - retriever - songList Array (Uri) 사용
 //                                  interface onItemClickListener 사용
 // -----------------------------------------------------------------------------------
-class MainActivity : AppCompatActivity(), View.OnClickListener {
-    var getInstance: MainActivity? = null
 
-    private lateinit var mainBinding: ActivityMainBinding
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        mainBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
-        Foreground.init(application) // Foreground class, Background 체크
+    private static final String TAG = "권한 ";
+    public MainActivity getInstance;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Foreground.init(this.getApplication()); // Foreground class, Background 체크
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             TedPermission.with(this)
-                    .setPermissionListener(object : PermissionListener {
-                        override fun onPermissionGranted() {
+                    .setPermissionListener(new PermissionListener() {
+                        @Override
+                        public void onPermissionGranted() {
                             // 권한 요청 성공
-                            Log.d(TAG, "권한 설정 완료") //PERMISSION_GRANTED
-                            initView() ////
+                            Log.d(TAG, "권한 설정 완료"); //PERMISSION_GRANTED
+                            initView(); ////
                         }
 
-                        override fun onPermissionDenied(deniedPermissions: List<String>) {
+                        @Override
+                        public void onPermissionDenied(List<String> deniedPermissions) {
                             // 권한 요청 실패
-                            Log.d(TAG, "권한 요청 실패$deniedPermissions") //PERMISSION_Denied
-                            Toast.makeText(this@MainActivity, "권한 허용을 하지 않으면 서비스를 이용할 수 없습니다.\n" +
-                                    deniedPermissions.toString(), Toast.LENGTH_SHORT).show()
+                            Log.d(TAG, "권한 요청 실패" + deniedPermissions.toString()); //PERMISSION_GRANTED
+                            Toast.makeText(MainActivity.this, "권한 허용을 하지 않으면 서비스를 이용할 수 없습니다.\n" +
+                                    deniedPermissions.toString(), Toast.LENGTH_SHORT).show();
                         }
                     })
                     .setRationaleMessage(getResources().getString(R.string.permission_2))
@@ -89,64 +97,60 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                     .setPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE,
                             Manifest.permission.READ_EXTERNAL_STORAGE,
                             Manifest.permission.CAMERA)
-                    .check()
+                    .check();
         } else {
-            initView() /////
+            initView();  /////
         }
+
     }
 
-    private fun initView() {
-        getInstance = this
-        val context: Context = applicationContext
+    private void initView(){
+        getInstance = this;
+        Context context = getApplicationContext();
 
 // 카메라 객체를 R.layout.activity_main의 레이아웃에 선언한 SurfaceView에서 먼저 정의해야 함으로 setContentView 보다 먼저 정의한다.
 //        camera = Camera.open();
-//        setContentView(R.layout.activity_main)
+
+        setContentView(R.layout.activity_main);
 
 //----------------------------------------------------------------------------
 // No Network Security Config specified, using platform default - Android Log
-        val policy: StrictMode.ThreadPolicy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-        StrictMode.setThreadPolicy(policy)
-        //----------------------------------------------------------------------------
-//        findViewById<View>(R.id.camera_photo).setOnClickListener(this)
-//        findViewById<View>(R.id.gallery).setOnClickListener(this)
-//        findViewById<View>(R.id.record).setOnClickListener(this)
-//        findViewById<View>(R.id.music).setOnClickListener(this)
-//        findViewById<View>(R.id.video).setOnClickListener(this)
+        StrictMode.ThreadPolicy policy = new
+                StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+//----------------------------------------------------------------------------
+        findViewById(R.id.camera_photo).setOnClickListener(this);
+        findViewById(R.id.gallery).setOnClickListener(this);
+        findViewById(R.id.record).setOnClickListener(this);
+        findViewById(R.id.music).setOnClickListener(this);
+        findViewById(R.id.video).setOnClickListener(this);
 
-        mainBinding.cameraPhoto.setOnClickListener(this)
-        mainBinding.gallery.setOnClickListener(this)
-        mainBinding.record.setOnClickListener(this)
-        mainBinding.music.setOnClickListener(this)
-        mainBinding.video.setOnClickListener(this)
     }
 
-    override fun onClick(v: View) {
-        when (v.id) {
-            R.id.camera_photo -> {
-                val cameraIntent = Intent(applicationContext, CameraActivity::class.java)
-                startActivity(cameraIntent)
-            }
-            R.id.gallery -> {
-                val galleryIntent = Intent(applicationContext, PhotoGalleryActivity::class.java)
-                startActivity(galleryIntent)
-            }
-            R.id.record -> {
-                val recordIntent = Intent(applicationContext, AudioRecordActivity::class.java)
-                startActivity(recordIntent)
-            }
-            R.id.music -> {
-                val musicIntent = Intent(applicationContext, MusicPlayerActivity::class.java)
-                startActivity(musicIntent)
-            }
-            R.id.video -> {
-                val videoIntent = Intent(applicationContext, VideoPlayerActivity::class.java)
-                startActivity(videoIntent)
-            }
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.camera_photo: // 사진찍기
+                Intent cameraIntent = new Intent(getApplicationContext(), CameraActivity.class);
+                startActivity(cameraIntent);
+                break;
+            case R.id.gallery: // 갤러리
+                Intent galleryIntent = new Intent(getApplicationContext(), PhotoGalleryActivity.class);
+                startActivity(galleryIntent);
+                break;
+            case R.id.record: // Audio Record
+                Intent recordIntent = new Intent(getApplicationContext(), AudioRecordActivity.class);
+                startActivity(recordIntent);
+                break;
+            case R.id.music: // Music play
+                Intent musicIntent = new Intent(getApplicationContext(), MusicPlayerActivity.class);
+                startActivity(musicIntent);
+                break;
+            case R.id.video: // Video play
+                Intent videoIntent = new Intent(getApplicationContext(), VideoPlayerActivity.class);
+                startActivity(videoIntent);
+                break;
         }
     }
-
-    companion object {
-        private const val TAG: String = "권한 "
-    }
 }
+

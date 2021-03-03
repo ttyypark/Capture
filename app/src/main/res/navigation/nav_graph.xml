@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/songFragment"
-        android:name="com.example.mediaplayer.frags.MusicFragment"
+        android:name="com.example.capture.frags.MusicFragment"
         android:label="SongFragment" >
         <action
             android:id="@+id/action_songFragment_to_playerFragment"
@@ -15,7 +15,7 @@
     </fragment>
     <fragment
         android:id="@+id/playerFragment"
-        android:name="com.example.mediaplayer.frags.MusicPlayerFragment"
+        android:name="com.example.capture.frags.MusicPlayerFragment"
         android:label="PlayerFragment" >
         <action
             android:id="@+id/action_playerFragment_to_listViewFragment"
@@ -23,7 +23,7 @@
     </fragment>
     <fragment
         android:id="@+id/listViewFragment"
-        android:name="com.example.mediaplayer.frags.ListViewFragment"
+        android:name="com.example.capture.frags.ListViewFragment"
         android:label="ListViewFragment" >
         <action
             android:id="@+id/action_listViewFragment_to_songFragment"
