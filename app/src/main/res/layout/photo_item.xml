@@ -18,9 +18,10 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:transitionName="transition" />
+        android:transitionName="transition"
+        app:srcCompat="@drawable/image1"
+        />
 <!--        app:srcCompat="@android:drawable/presence_video_busy" />-->
-    <!--    app:srcCompat="@drawable/image1" />-->
 
     <TextView
         android:id="@+id/txt_title"
@@ -31,7 +32,7 @@
         android:layout_marginTop="1dp"
         android:layout_marginEnd="1dp"
         android:layout_marginRight="1dp"
-        android:layout_marginBottom="50dp"
+        android:layout_marginBottom="5dp"
         android:text="@string/tempTitle"
         android:textColor="@android:color/black"
         android:textSize="16sp"
@@ -39,6 +40,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imagephotoView" />
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

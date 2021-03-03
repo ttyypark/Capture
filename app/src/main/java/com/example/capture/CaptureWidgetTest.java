@@ -68,7 +68,8 @@ public class CaptureWidgetTest extends AppWidgetProvider {
         intent1.setAction(ACTION_BUTTON1);
         intent1.putExtra("viewID", R.id.button1);
         //버튼2 클릭 : 클릭하면 웹브라우저를 열어서 지정된 사이트를 보내 준다.
-        Intent intent2 = new Intent(Intent.ACTION_VIEW, Uri.parse("http://google.com"));
+        Intent intent2 = new Intent(Intent.ACTION_VIEW, Uri.parse("http://m.welfare.mil.kr/main/index.html"));
+//        Intent intent2 = new Intent(Intent.ACTION_VIEW, Uri.parse("http://google.com"));
         //버튼3 클릭 : 이미지뷰에 비트맵 이미지를 교체해준다.
         Intent intent3 = new Intent(context, CaptureWidgetTest.class); // Broadcast를 받을 class 지정 필요
         intent3.setAction(ACTION_BUTTON3);
